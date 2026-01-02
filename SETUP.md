@@ -47,12 +47,20 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 1. Go to **Authentication > Providers**
 2. Enable **Email** with:
    - ✅ Enable Email OTP (Magic Link)
-   - ✅ Confirm email
-3. Optionally enable **Google** and **Apple** OAuth providers
-4. Set **Site URL** to your production URL
+   - ⚠️ **Email Confirmation**: 
+     - For **Development**: Uncheck "Confirm email" to allow immediate sign-in
+     - For **Production**: Keep "Confirm email" checked for security
+3. Optionally enable **Google**, **Apple**, and **Facebook** OAuth providers
+4. Set **Site URL** to your production URL (or `http://localhost:3000` for development)
 5. Add redirect URLs:
    - `http://localhost:3000/auth/callback`
    - `https://your-domain.com/auth/callback`
+
+**Note**: If you're not receiving confirmation emails:
+- Check your spam/junk folder
+- Verify email templates are enabled in **Authentication > Email Templates**
+- For development, consider disabling email confirmation (uncheck "Confirm email")
+- The app includes auto-confirm functionality in development mode that will automatically confirm users
 
 ### Run Database Migrations
 Execute these SQL scripts in **SQL Editor**:
@@ -201,7 +209,7 @@ Go to **Products** and create:
 #### Product 1: Single Snap
 - **Name**: Single Snap
 - **Description**: One animated photo download
-- **Price**: $5.00 USD (one-time)
+- **Price**: $4.99 USD (one-time)
 - Copy the Price ID → `STRIPE_PRICE_SINGLE`
 
 #### Product 2: Bundle Pack  

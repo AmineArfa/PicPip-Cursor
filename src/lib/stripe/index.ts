@@ -36,7 +36,7 @@ export const PRODUCTS = {
     name: 'Single Snap',
     description: 'One-time HD download for this photo',
     priceId: process.env.STRIPE_PRICE_SINGLE || '',
-    price: 500, // $5.00 in cents
+    price: 500, // $4.99 in cents
     mode: 'payment' as const,
   },
   bundle: {

@@ -4,7 +4,7 @@ import { getRunwayClientWithFallback } from '@/lib/runway/simulation';
 
 export async function POST(request: NextRequest) {
   try {
-    const { animationId, imageUrl } = await request.json();
+    const { animationId, imageUrl, promptText } = await request.json();
 
     if (!animationId || !imageUrl) {
       return NextResponse.json(
@@ -12,6 +12,9 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
+    
+    // Use provided prompt or default
+    const actionPrompt = promptText || 'Subtle motion, gentle animation';
 
     const supabase = await createServiceRoleClient();
     
@@ -26,9 +29,10 @@ export async function POST(request: NextRequest) {
     
     const job = await runway.createImageToVideoJob({
       promptImage: imageUrl,
-      model: 'gen3a_turbo',
+      promptText: actionPrompt,
+      model: 'gen4_turbo',
+      ratio: '1280:720',  // Landscape 16:9 - required for gen4_turbo
       duration: 5,
-      watermark: false,
     });
 
     // Store the Runway job ID

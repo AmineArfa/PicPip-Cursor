@@ -1,21 +1,23 @@
 'use client';
 
-import { useRef, useState, useCallback } from 'react';
+import { useRef, useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Sparkles, Camera, Image as ImageIcon, LogIn } from 'lucide-react';
+import { Sparkles, Image as ImageIcon, LogIn, User } from 'lucide-react';
 import { DotPattern, NeoButton } from '@/components/ui';
 import { PipMascot } from '@/components/pip-mascot';
 import { usePicPipStore } from '@/lib/store';
 import { validateImageFile, generateGuestSessionId } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/client';
 
 export default function HomePage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const multiFileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   
   const { 
     guestSessionId, 
@@ -23,6 +25,28 @@ export default function HomePage() {
     setProcessingStatus,
     setAnimation 
   } = usePicPipStore();
+
+  // Check authentication status and refresh session
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      
+      // Refresh session to keep it alive
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (session) {
+        // Refresh the session to extend expiration
+        await supabase.auth.refreshSession();
+        setIsAuthenticated(true);
+      } else {
+        setIsAuthenticated(false);
+      }
+      
+      setIsLoadingAuth(false);
+    };
+    
+    checkAuth();
+  }, []);
 
   const handleFileSelect = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -69,8 +93,8 @@ export default function HomePage() {
       // Store animation data
       setAnimation(data.animation);
       
-      // Navigate to processing page
-      router.push(`/processing/${data.animation.id}`);
+      // Navigate to choose action page (intermediary step)
+      router.push(`/choose-action/${data.animation.id}`);
     } catch (err) {
       console.error('Upload error:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload photo');
@@ -80,48 +104,86 @@ export default function HomePage() {
     }
   }, [guestSessionId, setGuestSession, setProcessingStatus, setAnimation, router]);
 
-  const handleSingleUpload = () => {
-    fileInputRef.current?.click();
-  };
-
-  const handleMultiUpload = () => {
-    multiFileInputRef.current?.click();
-  };
+  const handleUpload = useCallback((e?: React.MouseEvent<HTMLButtonElement>) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    
+    console.log('handleUpload called', { hasRef: !!fileInputRef.current });
+    
+    // Ensure the file input is accessible and trigger click
+    if (fileInputRef.current) {
+      try {
+        fileInputRef.current.click();
+        console.log('File input clicked');
+      } catch (error) {
+        console.error('Error clicking file input:', error);
+      }
+    } else {
+      console.error('File input ref is not available');
+    }
+  }, []);
 
   return (
     <DotPattern className="flex flex-col items-center justify-center p-4 overflow-hidden">
-      {/* Hidden file inputs */}
+      {/* Hidden file input */}
       <input
         ref={fileInputRef}
         type="file"
         accept="image/jpeg,image/png,image/webp,image/gif"
-        capture="environment"
-        className="hidden"
-        onChange={(e) => handleFileSelect(e.target.files)}
-      />
-      <input
-        ref={multiFileInputRef}
-        type="file"
-        accept="image/jpeg,image/png,image/webp,image/gif"
-        multiple
-        className="hidden"
-        onChange={(e) => handleFileSelect(e.target.files)}
+        multiple={false}
+        style={{ display: 'none' }}
+        onChange={(e) => {
+          console.log('File input onChange triggered', e.target.files);
+          handleFileSelect(e.target.files);
+          // Reset the input so the same file can be selected again
+          if (e.target) {
+            (e.target as HTMLInputElement).value = '';
+          }
+        }}
       />
 
-      {/* Login Button - Top Right */}
-      <Link
-        href="/login"
-        className="absolute top-6 right-6 z-50"
-      >
-        <motion.button
-          className="flex items-center gap-2 px-4 py-2 bg-white border-3 border-[#181016] rounded-full shadow-[3px_3px_0_0_#181016] hover:shadow-[4px_4px_0_0_#181016] hover:-translate-y-0.5 transition-all"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <LogIn className="w-5 h-5 text-[#181016]" />
-          <span className="font-bold text-[#181016] text-sm md:text-base">Login</span>
-        </motion.button>
-      </Link>
+      {/* Auth Button - Top Right */}
+      {!isLoadingAuth && (
+        <div className="absolute top-6 right-6 z-50 flex gap-3">
+          {isAuthenticated ? (
+            <>
+              <Link href="/memories">
+                <motion.button
+                  className="flex items-center gap-2 px-4 py-2 bg-white border-3 border-[#181016] rounded-full shadow-[3px_3px_0_0_#181016] hover:shadow-[4px_4px_0_0_#181016] hover:-translate-y-0.5 transition-all"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Sparkles className="w-5 h-5 text-[#181016]" />
+                  <span className="font-bold text-[#181016] text-sm md:text-base">My Memories</span>
+                </motion.button>
+              </Link>
+              <Link href="/account">
+                <motion.button
+                  className="flex items-center gap-2 px-4 py-2 bg-[#ff61d2] text-white border-3 border-[#181016] rounded-full shadow-[3px_3px_0_0_#181016] hover:shadow-[4px_4px_0_0_#181016] hover:-translate-y-0.5 transition-all"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <User className="w-5 h-5" />
+                  <span className="font-bold text-sm md:text-base">Account</span>
+                </motion.button>
+              </Link>
+            </>
+          ) : (
+            <Link href="/login">
+              <motion.button
+                className="flex items-center gap-2 px-4 py-2 bg-white border-3 border-[#181016] rounded-full shadow-[3px_3px_0_0_#181016] hover:shadow-[4px_4px_0_0_#181016] hover:-translate-y-0.5 transition-all"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <LogIn className="w-5 h-5 text-[#181016]" />
+                <span className="font-bold text-[#181016] text-sm md:text-base">Login</span>
+              </motion.button>
+            </Link>
+          )}
+        </div>
+      )}
 
       {/* Main Container */}
       <main className="w-full max-w-lg mx-auto flex flex-col items-center gap-6 relative z-10 text-center">
@@ -147,7 +209,7 @@ export default function HomePage() {
           transition={{ delay: 0.2 }}
         >
           <h1 className="font-display text-4xl md:text-5xl font-bold text-[#2962ff] leading-tight tracking-tight drop-shadow-sm">
-            Bring Your <br /> Memories to Life!
+            Bring Your <br /> Pictures to Life!
           </h1>
         </motion.div>
 
@@ -170,38 +232,50 @@ export default function HomePage() {
           transition={{ delay: 0.4 }}
         >
           {/* Primary Pulse Button */}
-          <NeoButton
-            variant="primary"
-            size="xl"
-            pulse={!isUploading}
-            icon={<Sparkles className="w-7 h-7" />}
-            onClick={handleSingleUpload}
-            disabled={isUploading}
-            className="max-w-[360px]"
-          >
-            {isUploading ? 'Uploading...' : 'Start Here'}
-          </NeoButton>
+          <div className="max-w-[360px] w-full">
+            <button
+              type="button"
+              onClick={handleUpload}
+              disabled={isUploading}
+              className="relative group w-full cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+            >
+              {/* Shadow Layer */}
+              <div className="absolute inset-0 rounded-full bg-[#181016] translate-x-1.5 translate-y-1.5" />
+              
+              {/* Button Content */}
+              <div className={`
+                relative flex items-center justify-center gap-3 w-full rounded-full border-4 border-[#181016] 
+                transition-colors bg-[#ff61d2] text-white hover:bg-[#ff7dd9] 
+                h-20 md:h-24 px-10 text-2xl md:text-3xl font-black
+                ${!isUploading && 'animate-pulse-slow hover:animate-none'}
+              `}>
+                <Sparkles className="w-7 h-7 flex-shrink-0" />
+                <span className="font-display uppercase tracking-wide">
+                  {isUploading ? 'Uploading...' : 'Start Here'}
+                </span>
+              </div>
+            </button>
+          </div>
 
-          {/* Secondary Button */}
-          <NeoButton
-            variant="secondary"
-            size="lg"
-            icon={<Camera className="w-5 h-5" />}
-            onClick={handleMultiUpload}
-            disabled={isUploading}
-            className="max-w-[320px]"
-          >
-            Upload Many Photos
-          </NeoButton>
-
-          {/* Login Link */}
-          <Link
-            href="/login"
-            className="mt-4 text-[#181016]/70 hover:text-[#181016] font-bold text-lg transition-colors flex items-center gap-2"
-          >
-            <LogIn className="w-5 h-5" />
-            Already have an account? Login here
-          </Link>
+          {/* Auth Link */}
+          {!isAuthenticated && (
+            <Link
+              href="/login"
+              className="mt-4 text-[#181016]/70 hover:text-[#181016] font-bold text-lg transition-colors flex items-center gap-2"
+            >
+              <LogIn className="w-5 h-5" />
+              Already have an account? Login here
+            </Link>
+          )}
+          {isAuthenticated && (
+            <Link
+              href="/memories"
+              className="mt-4 text-[#181016]/70 hover:text-[#181016] font-bold text-lg transition-colors flex items-center gap-2"
+            >
+              <Sparkles className="w-5 h-5" />
+              View your memories
+            </Link>
+          )}
         </motion.div>
       </main>
 

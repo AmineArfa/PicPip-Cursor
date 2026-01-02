@@ -3,8 +3,10 @@
 
 export interface RunwayJobRequest {
   promptImage: string;  // URL of the source image
-  model?: 'gen3a_turbo';  // Image to video model
+  promptText?: string;  // Text prompt describing the motion/action
+  model?: 'gen3a_turbo' | 'gen4_turbo';  // Image to video model (gen4_turbo is the latest available via API)
   duration?: 5 | 10;  // Video duration in seconds
+  ratio?: '1280:720' | '720:1280' | '1920:1080' | '1080:1920';  // Required for gen4_turbo: resolution strings
   watermark?: boolean;
   seed?: number;
 }
@@ -38,16 +40,42 @@ class RunwayClient {
 
   async createImageToVideoJob(request: RunwayJobRequest): Promise<RunwayJobResponse> {
     try {
-      // Build request body - trying minimal payload first
-      // Based on Runway Gen-3 Alpha docs
+      // Build request body - Based on Runway API docs (v2024-11-06)
+      const model = request.model || 'gen4_turbo';
       const requestBody: Record<string, unknown> = {
-        promptImage: request.promptImage,  // Try camelCase
-        // Adding a default prompt text in case it's required
-        promptText: "Subtle motion, gentle animation",
+        model,
+        promptImage: request.promptImage,
       };
-      
-      // Add model - Gen-3 Alpha Turbo
-      requestBody.model = request.model || 'gen3a_turbo';
+
+      // gen4_turbo requires 'ratio' parameter with specific resolution strings
+      if (model === 'gen4_turbo') {
+        // ratio is REQUIRED for gen4_turbo - use landscape 16:9 by default
+        requestBody.ratio = request.ratio || '1280:720';
+        // promptText is optional but recommended for gen4_turbo
+        if (request.promptText) {
+          requestBody.promptText = request.promptText;
+        }
+        // Duration for gen4_turbo (5 or 10 seconds)
+        if (request.duration) {
+          requestBody.duration = request.duration;
+        }
+      } else {
+        // gen3a_turbo uses promptText
+        requestBody.promptText = request.promptText || "Subtle motion, gentle animation";
+        // Duration for other models
+        if (request.duration) {
+          requestBody.duration = request.duration;
+        }
+      }
+
+      // Optional parameters (for all models)
+      if (request.seed !== undefined) {
+        requestBody.seed = request.seed;
+      }
+      // Note: watermark is not supported for gen4_turbo, only include for gen3a_turbo
+      if (model !== 'gen4_turbo' && request.watermark !== undefined) {
+        requestBody.watermark = request.watermark;
+      }
       
       console.log('[Runway] Creating job with:', JSON.stringify(requestBody));
       
@@ -66,7 +94,8 @@ class RunwayClient {
         console.error('Runway API error response:', {
           status: response.status,
           statusText: response.statusText,
-          error: errorData
+          error: errorData,
+          issues: JSON.stringify(errorData.issues, null, 2)
         });
         
         // If API fails, fall back to simulation

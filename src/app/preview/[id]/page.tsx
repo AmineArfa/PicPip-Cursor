@@ -134,6 +134,7 @@ export default function PreviewPage() {
             src={videoUrl || '/demo-video.mp4'}
             poster={animation?.original_photo_url || undefined}
             showWatermark={showWatermark}
+            hideControls={showWatermark}
             autoPlay
             loop
           />

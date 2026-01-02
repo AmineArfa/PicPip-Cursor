@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Fredoka, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
+import { SessionProvider } from "@/components/session-provider";
 
 const fredoka = Fredoka({
   variable: "--font-display",
@@ -15,12 +16,12 @@ const plusJakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "PicPip.co - Bring Your Memories to Life!",
+  title: "PicPip.co - Bring Your Pictures to Life!",
   description: "Transform your cherished photos into magical animated videos. Perfect for preserving family memories.",
   keywords: ["photo animation", "video memories", "family photos", "animated pictures"],
   authors: [{ name: "PicPip" }],
   openGraph: {
-    title: "PicPip.co - Bring Your Memories to Life!",
+    title: "PicPip.co - Bring Your Pictures to Life!",
     description: "Transform your cherished photos into magical animated videos.",
     url: "https://picpip.co",
     siteName: "PicPip",
@@ -44,8 +45,11 @@ export default function RootLayout({
     <html lang="en">
       <body
         className={`${fredoka.variable} ${plusJakarta.variable} font-body antialiased`}
+        suppressHydrationWarning
       >
-        {children}
+        <SessionProvider>
+          {children}
+        </SessionProvider>
       </body>
     </html>
   );

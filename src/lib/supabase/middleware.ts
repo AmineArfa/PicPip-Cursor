@@ -30,7 +30,14 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired
+  // Refresh session if expired - getSession() automatically refreshes expired sessions
+  // This ensures the session stays alive across navigation
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  // Get user for protected route checks (this also validates the session)
+  // getUser() will refresh the session if it's expired
   const {
     data: { user },
   } = await supabase.auth.getUser();

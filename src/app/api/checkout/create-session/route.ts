@@ -8,9 +8,18 @@ export async function POST(request: NextRequest) {
     const { productType, customerEmail, animationId, guestSessionId } = body;
 
     // Validate required fields
-    if (!productType || !customerEmail || !animationId) {
+    // animationId is optional for subscriptions from pricing page
+    if (!productType || !customerEmail) {
       return NextResponse.json(
         { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    // animationId is required for single and bundle purchases
+    if (productType !== 'subscription' && !animationId) {
+      return NextResponse.json(
+        { error: 'Animation ID is required for this product type' },
         { status: 400 }
       );
     }
@@ -35,14 +44,28 @@ export async function POST(request: NextRequest) {
     // Get base URL
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
 
+    // Determine success and cancel URLs based on product type
+    let successUrl: string;
+    let cancelUrl: string;
+
+    if (productType === 'subscription') {
+      // For subscriptions, redirect to account or home
+      successUrl = `${baseUrl}/account?session_id={CHECKOUT_SESSION_ID}`;
+      cancelUrl = `${baseUrl}/pricing`;
+    } else {
+      // For single/bundle, redirect to celebration page
+      successUrl = `${baseUrl}/celebration/${animationId}?session_id={CHECKOUT_SESSION_ID}`;
+      cancelUrl = `${baseUrl}/checkout/${animationId}`;
+    }
+
     // Create Stripe checkout session
     const session = await createCheckoutSession({
       productType: productType as ProductType,
       customerEmail,
-      animationId,
+      animationId: animationId || 'pricing-page',
       guestSessionId: guestSessionId || '',
-      successUrl: `${baseUrl}/celebration/${animationId}?session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${baseUrl}/checkout/${animationId}`,
+      successUrl,
+      cancelUrl,
     });
 
     // Also trigger magic link auth (non-blocking)

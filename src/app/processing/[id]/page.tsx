@@ -7,6 +7,7 @@ import { AlertTriangle, Star } from 'lucide-react';
 import { Header } from '@/components/header';
 import { DotPattern } from '@/components/ui';
 import { usePicPipStore } from '@/lib/store';
+import { createClient } from '@/lib/supabase/client';
 import Image from 'next/image';
 
 const PROCESSING_MESSAGES = [
@@ -21,7 +22,7 @@ const FUN_FACTS = [
   'Did you know? Pip has processed over 1 million smiles today!',
   'Fun fact: The first animated photo was created in 1878!',
   'Tip: Photos with clear faces work best!',
-  'Did you know? PicPip uses AI magic to bring your memories to life!',
+  'Did you know? PicPip uses AI magic to Bring Your Pictures to Life!',
 ];
 
 export default function ProcessingPage() {
@@ -33,10 +34,36 @@ export default function ProcessingPage() {
   const [factIndex, setFactIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
   
   const { currentAnimation, setAnimation, setProcessingStatus } = usePicPipStore();
   const [devModeStart] = useState(() => Date.now());
   const [isDevMode, setIsDevMode] = useState(false);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        setIsAuthenticated(true);
+        // Check subscription status
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('subscription_status')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile?.subscription_status === 'active' || profile?.subscription_status === 'trial') {
+          setIsSubscribed(true);
+        }
+      }
+    };
+    
+    checkAuth();
+  }, []);
 
   // Poll for status updates
   const checkStatus = useCallback(async () => {
@@ -145,7 +172,7 @@ export default function ProcessingPage() {
 
   return (
     <div className="min-h-screen bg-[#a855f7] flex flex-col">
-      <Header variant="default" />
+      <Header variant="default" isAuthenticated={isAuthenticated} isSubscribed={isSubscribed} />
       
       <main className="flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden">
         {/* Decorative elements */}

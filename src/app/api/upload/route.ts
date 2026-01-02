@@ -178,18 +178,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Trigger Runway ML processing
-    const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-    fetch(`${appUrl}/api/runway/create-job`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        animationId: animation.id,
-        imageUrl: publicUrl,
-      }),
-    }).catch((err) => {
-      console.error('Failed to trigger Runway job:', err);
-    });
+    // Note: Runway ML processing is now triggered from /choose-action page
+    // after the user selects their desired animation action/emotion
 
     return NextResponse.json({
       success: true,

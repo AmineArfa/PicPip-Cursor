@@ -25,7 +25,7 @@ const PLANS = {
   single: {
     name: 'Just this one',
     subtitle: 'One-time payment',
-    price: '$5.00',
+    price: '$4.99',
     priceSuperscript: '',
     description: 'Single HD Download',
     buttonText: 'Buy One',
