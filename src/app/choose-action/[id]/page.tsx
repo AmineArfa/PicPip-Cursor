@@ -33,6 +33,7 @@ export default function ChooseActionPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [credits, setCredits] = useState(0);
 
   const { currentAnimation, setAnimation, setProcessingStatus } = usePicPipStore();
 
@@ -46,13 +47,14 @@ export default function ChooseActionPage() {
         setIsAuthenticated(true);
         const { data: profile } = await supabase
           .from('profiles')
-          .select('subscription_status')
+          .select('subscription_status, credits')
           .eq('id', user.id)
           .single();
 
         if (profile?.subscription_status === 'active' || profile?.subscription_status === 'trial') {
           setIsSubscribed(true);
         }
+        setCredits(profile?.credits || 0);
       }
     };
 
@@ -125,7 +127,7 @@ export default function ChooseActionPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#00d4ff] via-[#00b8e6] to-[#0099cc] flex flex-col">
-      <Header variant="default" isAuthenticated={isAuthenticated} isSubscribed={isSubscribed} />
+      <Header variant="default" isAuthenticated={isAuthenticated} isSubscribed={isSubscribed} credits={credits} />
 
       <main className="flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden">
         {/* Decorative floating elements */}

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { User, Sparkles, HelpCircle, Menu, X } from 'lucide-react';
+import { User, Sparkles, HelpCircle, Menu, X, Zap, Infinity } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -11,7 +11,62 @@ interface HeaderProps {
   showNav?: boolean;
   isAuthenticated?: boolean;
   isSubscribed?: boolean;
+  credits?: number;
   step?: { current: number; total: number };
+}
+
+// Credit bar component that shows credits with a visual bar
+function CreditBar({ credits, isSubscribed }: { credits: number; isSubscribed: boolean }) {
+  // For non-subscribers, show credits out of 10 (max bundle size)
+  // For subscribers, show full bar with infinity icon
+  const maxCredits = 10;
+  const percentage = isSubscribed ? 100 : Math.min((credits / maxCredits) * 100, 100);
+  
+  return (
+    <Link
+      href="/pricing"
+      className="group flex items-center gap-2 px-3 py-1.5 bg-white border-3 border-[#181016] rounded-full hover:shadow-[3px_3px_0_0_#181016] hover:-translate-y-0.5 transition-all cursor-pointer"
+    >
+      <Zap className="w-4 h-4 text-[#ff61d2] flex-shrink-0" />
+      
+      {/* Credit bar container */}
+      <div className="relative w-16 sm:w-20 h-4 bg-gray-200 rounded-full overflow-hidden border-2 border-[#181016]">
+        <motion.div
+          className={cn(
+            "absolute inset-y-0 left-0 rounded-full",
+            isSubscribed 
+              ? "bg-gradient-to-r from-[#ff61d2] via-[#a3ff00] to-[#00d4ff]"
+              : credits > 0 
+                ? "bg-gradient-to-r from-[#ff61d2] to-[#ff8de0]"
+                : "bg-gray-300"
+          )}
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 0.5, ease: "easeOut" }}
+        />
+        
+        {/* Shimmer effect for unlimited */}
+        {isSubscribed && (
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
+            animate={{ x: ["-100%", "100%"] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+          />
+        )}
+      </div>
+      
+      {/* Credit text */}
+      <span className="font-bold text-sm text-[#181016] flex items-center gap-1 min-w-[2.5rem]">
+        {isSubscribed ? (
+          <>
+            <Infinity className="w-4 h-4" />
+          </>
+        ) : (
+          <span>{credits}</span>
+        )}
+      </span>
+    </Link>
+  );
 }
 
 export function Header({
@@ -19,6 +74,7 @@ export function Header({
   showNav = true,
   isAuthenticated = false,
   isSubscribed = false,
+  credits = 0,
   step,
 }: HeaderProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -58,6 +114,8 @@ export function Header({
                     Upgrade
                   </Link>
                 )}
+                {/* Credit Bar */}
+                <CreditBar credits={credits} isSubscribed={isSubscribed} />
               </>
             )}
             <Link
@@ -132,6 +190,10 @@ export function Header({
             <nav className="flex flex-col gap-2">
               {isAuthenticated && (
                 <>
+                  {/* Mobile Credit Bar */}
+                  <div className="px-4 py-3" onClick={() => setMobileMenuOpen(false)}>
+                    <CreditBar credits={credits} isSubscribed={isSubscribed} />
+                  </div>
                   <Link
                     href="/memories"
                     className="px-4 py-3 text-lg font-bold hover:bg-gray-100 rounded-lg"

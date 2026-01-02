@@ -36,6 +36,7 @@ export default function ProcessingPage() {
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [credits, setCredits] = useState(0);
   
   const { currentAnimation, setAnimation, setProcessingStatus } = usePicPipStore();
   const [devModeStart] = useState(() => Date.now());
@@ -49,16 +50,17 @@ export default function ProcessingPage() {
       
       if (user) {
         setIsAuthenticated(true);
-        // Check subscription status
+        // Check subscription status and credits
         const { data: profile } = await supabase
           .from('profiles')
-          .select('subscription_status')
+          .select('subscription_status, credits')
           .eq('id', user.id)
           .single();
         
         if (profile?.subscription_status === 'active' || profile?.subscription_status === 'trial') {
           setIsSubscribed(true);
         }
+        setCredits(profile?.credits || 0);
       }
     };
     
@@ -172,7 +174,7 @@ export default function ProcessingPage() {
 
   return (
     <div className="min-h-screen bg-[#a855f7] flex flex-col">
-      <Header variant="default" isAuthenticated={isAuthenticated} isSubscribed={isSubscribed} />
+      <Header variant="default" isAuthenticated={isAuthenticated} isSubscribed={isSubscribed} credits={credits} />
       
       <main className="flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden">
         {/* Decorative elements */}

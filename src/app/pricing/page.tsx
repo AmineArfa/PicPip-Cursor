@@ -71,6 +71,7 @@ export default function PricingPage() {
   const router = useRouter();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
+  const [credits, setCredits] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -80,16 +81,17 @@ export default function PricingPage() {
       
       if (user) {
         setIsAuthenticated(true);
-        // Check subscription status
+        // Check subscription status and credits
         const { data: profile } = await supabase
           .from('profiles')
-          .select('subscription_status')
+          .select('subscription_status, credits')
           .eq('id', user.id)
           .single();
         
         if (profile?.subscription_status === 'active' || profile?.subscription_status === 'trial') {
           setIsSubscribed(true);
         }
+        setCredits(profile?.credits || 0);
       }
       setIsLoading(false);
     };
@@ -159,7 +161,7 @@ export default function PricingPage() {
 
   return (
     <DotPattern variant="dense" className="min-h-screen flex flex-col">
-      <Header isAuthenticated={isAuthenticated} isSubscribed={isSubscribed} />
+      <Header isAuthenticated={isAuthenticated} isSubscribed={isSubscribed} credits={credits} />
       
       <main className="flex-1 py-12 px-4">
         <div className="max-w-6xl mx-auto">

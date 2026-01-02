@@ -2,26 +2,58 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, X } from 'lucide-react';
+import { Send, X, Mail } from 'lucide-react';
 import { Header } from '@/components/header';
 import { NeoButton, NeoInput } from '@/components/ui';
 import { PipMascot } from '@/components/pip-mascot';
 
 export default function HelpPage() {
+  const [email, setEmail] = useState('');
   const [question, setQuestion] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [ticketNumber, setTicketNumber] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (!question.trim()) return;
+    if (!email.trim() || !question.trim()) return;
     
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      setError('Please enter a valid email address');
+      return;
+    }
+
     setIsSubmitting(true);
+    setError(null);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    setSubmitted(true);
-    setIsSubmitting(false);
+    try {
+      const response = await fetch('/api/help/create-ticket', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          message: question.trim(),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send message');
+      }
+
+      setTicketNumber(data.ticketNumber);
+      setSubmitted(true);
+    } catch (err: any) {
+      console.error('Error submitting ticket:', err);
+      setError(err.message || 'Failed to send message. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleClose = () => {
@@ -72,6 +104,11 @@ export default function HelpPage() {
             <h2 className="font-display text-2xl font-bold text-[#181016] mb-2">
               Message Sent!
             </h2>
+            {ticketNumber && (
+              <p className="text-[#181016]/80 mb-4 font-bold">
+                Ticket: {ticketNumber}
+              </p>
+            )}
             <p className="text-[#181016]/70 mb-6">
               Pip will get back to you within 5 minutes!
             </p>
@@ -81,6 +118,9 @@ export default function HelpPage() {
               onClick={() => {
                 setSubmitted(false);
                 setQuestion('');
+                setEmail('');
+                setTicketNumber(null);
+                setError(null);
               }}
             >
               Ask Another Question
@@ -88,12 +128,31 @@ export default function HelpPage() {
           </motion.div>
         ) : (
           <>
-            {/* Question Input */}
+            {/* Email Input */}
             <motion.div
               className="w-full max-w-2xl"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
+            >
+              <NeoInput
+                type="email"
+                placeholder="your@email.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                icon={<Mail className="w-6 h-6" />}
+                size="lg"
+                disabled={isSubmitting}
+                required
+              />
+            </motion.div>
+
+            {/* Question Input */}
+            <motion.div
+              className="w-full max-w-2xl mt-6"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.25 }}
             >
               <div className="bg-white border-4 border-[#181016] rounded-3xl shadow-[6px_6px_0_0_#181016] p-4">
                 <textarea
@@ -101,9 +160,21 @@ export default function HelpPage() {
                   onChange={(e) => setQuestion(e.target.value)}
                   placeholder="Type your question here..."
                   className="w-full h-48 p-4 text-xl font-medium resize-none focus:outline-none placeholder:text-[#181016]/30"
+                  disabled={isSubmitting}
                 />
               </div>
             </motion.div>
+
+            {/* Error Message */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="w-full max-w-2xl mt-4 bg-red-50 border-4 border-red-500 rounded-2xl p-4"
+              >
+                <p className="text-red-700 font-bold text-center">{error}</p>
+              </motion.div>
+            )}
 
             {/* Submit Button */}
             <motion.div
@@ -118,7 +189,7 @@ export default function HelpPage() {
                 icon={<Send className="w-6 h-6" />}
                 iconPosition="right"
                 onClick={handleSubmit}
-                disabled={!question.trim() || isSubmitting}
+                disabled={!email.trim() || !question.trim() || isSubmitting}
               >
                 {isSubmitting ? 'Sending...' : 'Send to Pip'}
               </NeoButton>

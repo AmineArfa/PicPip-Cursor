@@ -50,7 +50,7 @@ export function AccountContent({ user, profile, stats }: AccountContentProps) {
 
   return (
     <DotPattern className="min-h-screen flex flex-col">
-      <Header isAuthenticated={true} isSubscribed={isSubscribed} />
+      <Header isAuthenticated={true} isSubscribed={isSubscribed} credits={profile?.credits || 0} />
 
       <main className="flex-1 py-8 px-4">
         <div className="max-w-2xl mx-auto space-y-8">

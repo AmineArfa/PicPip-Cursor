@@ -16,6 +16,7 @@ export type Database = {
           credits: number;
           subscription_status: 'none' | 'trial' | 'active' | 'cancelled';
           stripe_customer_id: string | null;
+          is_admin: boolean;
           created_at: string;
         };
         Insert: {
@@ -24,6 +25,7 @@ export type Database = {
           credits?: number;
           subscription_status?: 'none' | 'trial' | 'active' | 'cancelled';
           stripe_customer_id?: string | null;
+          is_admin?: boolean;
           created_at?: string;
         };
         Update: {
@@ -32,6 +34,7 @@ export type Database = {
           credits?: number;
           subscription_status?: 'none' | 'trial' | 'active' | 'cancelled';
           stripe_customer_id?: string | null;
+          is_admin?: boolean;
           created_at?: string;
         };
       };
@@ -108,6 +111,67 @@ export type Database = {
           created_at?: string;
         };
       };
+      support_tickets: {
+        Row: {
+          id: string;
+          ticket_number: string;
+          email: string;
+          subject: string | null;
+          status: 'open' | 'in_progress' | 'resolved' | 'closed';
+          user_id: string | null;
+          created_at: string;
+          updated_at: string;
+          resolved_at: string | null;
+        };
+        Insert: {
+          id?: string;
+          ticket_number: string;
+          email: string;
+          subject?: string | null;
+          status?: 'open' | 'in_progress' | 'resolved' | 'closed';
+          user_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          resolved_at?: string | null;
+        };
+        Update: {
+          id?: string;
+          ticket_number?: string;
+          email?: string;
+          subject?: string | null;
+          status?: 'open' | 'in_progress' | 'resolved' | 'closed';
+          user_id?: string | null;
+          created_at?: string;
+          updated_at?: string;
+          resolved_at?: string | null;
+        };
+      };
+      support_messages: {
+        Row: {
+          id: string;
+          ticket_id: string;
+          sender_type: 'user' | 'admin';
+          sender_email: string;
+          message: string;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          ticket_id: string;
+          sender_type: 'user' | 'admin';
+          sender_email: string;
+          message: string;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          ticket_id?: string;
+          sender_type?: 'user' | 'admin';
+          sender_email?: string;
+          message?: string;
+          created_at?: string;
+        };
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -115,6 +179,8 @@ export type Database = {
       subscription_status: 'none' | 'trial' | 'active' | 'cancelled';
       animation_status: 'pending' | 'processing' | 'completed' | 'failed';
       product_type: 'single' | 'bundle' | 'subscription';
+      ticket_status: 'open' | 'in_progress' | 'resolved' | 'closed';
+      sender_type: 'user' | 'admin';
     };
   };
 };
@@ -123,7 +189,12 @@ export type Database = {
 export type Profile = Database['public']['Tables']['profiles']['Row'];
 export type Animation = Database['public']['Tables']['animations']['Row'];
 export type Purchase = Database['public']['Tables']['purchases']['Row'];
+export type SupportTicket = Database['public']['Tables']['support_tickets']['Row'];
+export type SupportMessage = Database['public']['Tables']['support_messages']['Row'];
 
 export type AnimationInsert = Database['public']['Tables']['animations']['Insert'];
 export type AnimationUpdate = Database['public']['Tables']['animations']['Update'];
+export type SupportTicketInsert = Database['public']['Tables']['support_tickets']['Insert'];
+export type SupportTicketUpdate = Database['public']['Tables']['support_tickets']['Update'];
+export type SupportMessageInsert = Database['public']['Tables']['support_messages']['Insert'];
 
