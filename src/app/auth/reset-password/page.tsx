@@ -90,7 +90,7 @@ export default function ResetPasswordPage() {
             className="mb-6"
           >
             <div className="w-28 h-28 rounded-full bg-white border-4 border-[#181016] shadow-[4px_4px_0_0_#181016] overflow-hidden">
-              <PipMascot variant="sad" size="sm" animate={false} />
+              <PipMascot variant="thinking" size="sm" animate={false} />
             </div>
           </motion.div>
 
