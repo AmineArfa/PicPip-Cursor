@@ -2,8 +2,9 @@
 
 import { useRef, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Sparkles, Camera, Image as ImageIcon } from 'lucide-react';
+import { Sparkles, Camera, Image as ImageIcon, LogIn } from 'lucide-react';
 import { DotPattern, NeoButton } from '@/components/ui';
 import { PipMascot } from '@/components/pip-mascot';
 import { usePicPipStore } from '@/lib/store';
@@ -107,6 +108,21 @@ export default function HomePage() {
         onChange={(e) => handleFileSelect(e.target.files)}
       />
 
+      {/* Login Button - Top Right */}
+      <Link
+        href="/login"
+        className="absolute top-6 right-6 z-50"
+      >
+        <motion.button
+          className="flex items-center gap-2 px-4 py-2 bg-white border-3 border-[#181016] rounded-full shadow-[3px_3px_0_0_#181016] hover:shadow-[4px_4px_0_0_#181016] hover:-translate-y-0.5 transition-all"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+        >
+          <LogIn className="w-5 h-5 text-[#181016]" />
+          <span className="font-bold text-[#181016] text-sm md:text-base">Login</span>
+        </motion.button>
+      </Link>
+
       {/* Main Container */}
       <main className="w-full max-w-lg mx-auto flex flex-col items-center gap-6 relative z-10 text-center">
         {/* Mascot Section */}
@@ -177,6 +193,15 @@ export default function HomePage() {
           >
             Upload Many Photos
           </NeoButton>
+
+          {/* Login Link */}
+          <Link
+            href="/login"
+            className="mt-4 text-[#181016]/70 hover:text-[#181016] font-bold text-lg transition-colors flex items-center gap-2"
+          >
+            <LogIn className="w-5 h-5" />
+            Already have an account? Login here
+          </Link>
         </motion.div>
       </main>
 

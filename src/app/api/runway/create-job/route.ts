@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
-import { getRunwayClient } from '@/lib/runway';
+import { getRunwayClientWithFallback } from '@/lib/runway/simulation';
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,41 +21,8 @@ export async function POST(request: NextRequest) {
       .update({ status: 'processing' })
       .eq('id', animationId);
 
-    // Check if we have a Runway API key (if not, simulate processing)
-    const runwayApiKey = process.env.RUNWAY_API_KEY;
-    
-    if (!runwayApiKey) {
-      // Simulate processing for development
-      console.log('No Runway API key - simulating video processing');
-      
-      // Simulate a 10-second delay then mark as complete with demo video
-      setTimeout(async () => {
-        try {
-          const supabaseUpdate = await createServiceRoleClient();
-          await supabaseUpdate
-            .from('animations')
-            .update({
-              status: 'completed',
-              video_url: imageUrl,
-              watermarked_video_url: imageUrl,
-            })
-            .eq('id', animationId);
-          
-          console.log('Simulated processing complete for:', animationId);
-        } catch (err) {
-          console.error('Error updating animation:', err);
-        }
-      }, 10000);
-
-      return NextResponse.json({
-        success: true,
-        message: 'Processing started (simulated)',
-        animationId,
-      });
-    }
-
-    // Real Runway API integration
-    const runway = getRunwayClient();
+    // Get Runway client (real or simulated based on API key)
+    const runway = getRunwayClientWithFallback();
     
     const job = await runway.createImageToVideoJob({
       promptImage: imageUrl,
@@ -106,7 +73,7 @@ async function pollRunwayJob(animationId: string, jobId: string) {
     attempts++;
 
     try {
-      const runway = getRunwayClient();
+      const runway = getRunwayClientWithFallback();
       const job = await runway.getJobStatus(jobId);
 
       if (job.status === 'SUCCEEDED' && job.output?.[0]) {

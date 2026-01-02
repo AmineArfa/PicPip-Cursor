@@ -51,6 +51,11 @@ export async function checkRateLimit(
   limiter: Ratelimit | null,
   identifier: string
 ): Promise<{ success: boolean; remaining?: number; reset?: Date }> {
+  // Skip rate limiting in development mode
+  if (process.env.NODE_ENV !== 'production') {
+    return { success: true };
+  }
+  
   if (!limiter) {
     // Rate limiting disabled, allow all
     return { success: true };

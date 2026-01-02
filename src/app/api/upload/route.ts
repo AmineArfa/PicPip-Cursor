@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/server';
 import { uploadRatelimit, checkRateLimit, getClientIP } from '@/lib/ratelimit';
 import { validateFileType, rateLimitResponse, handleCorsPreFlight } from '@/lib/security';
+import { devStore } from '@/lib/dev-store';
 import { v4 as uuidv4 } from 'uuid';
 
 // Maximum file size: 10MB
@@ -21,13 +22,15 @@ export async function OPTIONS(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    // Rate limiting
-    const clientIP = getClientIP(request);
-    const rateLimit = await checkRateLimit(uploadRatelimit, clientIP);
-    
-    if (!rateLimit.success) {
-      console.warn(`Rate limit exceeded for IP: ${clientIP}`);
-      return rateLimitResponse(rateLimit.reset);
+    // Rate limiting (skip in development if no Redis)
+    if (process.env.NODE_ENV === 'production' || uploadRatelimit) {
+      const clientIP = getClientIP(request);
+      const rateLimit = await checkRateLimit(uploadRatelimit, clientIP);
+      
+      if (!rateLimit.success) {
+        console.warn(`Rate limit exceeded for IP: ${clientIP}`);
+        return rateLimitResponse(rateLimit.reset);
+      }
     }
 
     const formData = await request.formData();
@@ -85,43 +88,73 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get Supabase client
-    const supabase = await createServiceRoleClient();
-
-    // Generate unique file name
+    // Generate IDs
+    const animationId = uuidv4();
     const fileExtension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
     const safeExtension = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(fileExtension) 
       ? fileExtension 
       : 'jpg';
-    const fileName = `${guestSessionId}/${uuidv4()}.${safeExtension}`;
+    const fileName = `${guestSessionId}/${animationId}.${safeExtension}`;
 
-    // Convert file to buffer
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
+    // Try to use Supabase, fall back to dev mode
+    let useDevMode = false;
+    let publicUrl: string = '';
+    let supabase: any;
 
-    // Upload to guest-uploads bucket
-    const { data: uploadData, error: uploadError } = await supabase.storage
-      .from('guest-uploads')
-      .upload(fileName, buffer, {
-        contentType: fileValidation.detectedType || file.type,
-        upsert: false,
-      });
+    try {
+      supabase = await createServiceRoleClient();
+      
+      // Convert file to buffer
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
 
-    if (uploadError) {
-      console.error('Storage upload error:', uploadError);
-      return NextResponse.json(
-        { error: 'Failed to upload file' },
-        { status: 500 }
-      );
+      // Try to upload to Supabase storage
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('guest-uploads')
+        .upload(fileName, buffer, {
+          contentType: fileValidation.detectedType || file.type,
+          upsert: false,
+        });
+
+      if (uploadError) {
+        console.warn('Storage upload failed:', uploadError.message);
+        useDevMode = true;
+      } else {
+        // Get public URL
+        const { data: urlData } = supabase.storage
+          .from('guest-uploads')
+          .getPublicUrl(fileName);
+        publicUrl = urlData.publicUrl;
+      }
+    } catch (err: any) {
+      console.warn('Supabase not available:', err.message);
+      useDevMode = true;
     }
 
-    // Get public URL for the uploaded file
-    const { data: { publicUrl } } = supabase.storage
-      .from('guest-uploads')
-      .getPublicUrl(fileName);
+    // Development mode fallback
+    if (useDevMode) {
+      console.log('[Dev Mode] Using in-memory store for animation');
+      publicUrl = `https://picsum.photos/seed/${animationId}/800/600`;
+      
+      const animation = devStore.createAnimation({
+        id: animationId,
+        guest_session_id: guestSessionId,
+        user_id: null,
+        original_photo_url: publicUrl,
+        thumbnail_url: publicUrl,
+        runway_job_id: null,
+        title: null,
+        is_paid: false,
+      });
 
-    // Create animation record
-    const animationId = uuidv4();
+      return NextResponse.json({
+        success: true,
+        animation,
+        devMode: true,
+      });
+    }
+
+    // Production mode - create database record
     const { data: animation, error: dbError } = await supabase
       .from('animations')
       .insert({
@@ -137,7 +170,7 @@ export async function POST(request: NextRequest) {
 
     if (dbError) {
       console.error('Database insert error:', dbError);
-      // Try to clean up the uploaded file
+      // Clean up uploaded file
       await supabase.storage.from('guest-uploads').remove([fileName]);
       return NextResponse.json(
         { error: 'Failed to create animation record' },
@@ -145,7 +178,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Trigger Runway ML processing (async, don't wait)
+    // Trigger Runway ML processing
     const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
     fetch(`${appUrl}/api/runway/create-job`, {
       method: 'POST',

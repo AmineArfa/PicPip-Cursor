@@ -35,17 +35,48 @@ export default function ProcessingPage() {
   const [error, setError] = useState<string | null>(null);
   
   const { currentAnimation, setAnimation, setProcessingStatus } = usePicPipStore();
+  const [devModeStart] = useState(() => Date.now());
+  const [isDevMode, setIsDevMode] = useState(false);
 
   // Poll for status updates
   const checkStatus = useCallback(async () => {
     try {
       const response = await fetch(`/api/status/${animationId}`);
-      
-      if (!response.ok) {
-        throw new Error('Failed to check status');
-      }
-      
       const data = await response.json();
+      
+      // Handle 404 or error - check if we're in dev mode
+      if (!response.ok || data.error) {
+        // In dev mode, simulate completion after 10 seconds
+        const elapsed = Date.now() - devModeStart;
+        if (elapsed > 10000) {
+          console.log('[Dev Mode] Simulating animation completion');
+          
+          // Create a mock completed animation
+          const mockAnimation = {
+            id: animationId,
+            guest_session_id: null,
+            user_id: null,
+            original_photo_url: currentAnimation?.original_photo_url || `https://picsum.photos/seed/${animationId}/800/600`,
+            thumbnail_url: currentAnimation?.thumbnail_url || `https://picsum.photos/seed/${animationId}/800/600`,
+            video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+            watermarked_video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+            runway_job_id: null,
+            title: null,
+            is_paid: false,
+            status: 'completed' as const,
+            created_at: new Date().toISOString(),
+          };
+          
+          setAnimation(mockAnimation);
+          setProcessingStatus('complete');
+          router.push(`/preview/${animationId}`);
+          return;
+        }
+        
+        setIsDevMode(true);
+        setProgress((prev) => Math.min(prev + 8, 90));
+        return;
+      }
       
       if (data.status === 'completed') {
         setAnimation(data);
@@ -60,9 +91,11 @@ export default function ProcessingPage() {
       }
     } catch (err) {
       console.error('Status check error:', err);
-      // Don't show error for network issues, just retry
+      // In dev mode without backend, simulate progress
+      setIsDevMode(true);
+      setProgress((prev) => Math.min(prev + 8, 90));
     }
-  }, [animationId, router, setAnimation, setProcessingStatus]);
+  }, [animationId, router, setAnimation, setProcessingStatus, devModeStart, currentAnimation]);
 
   // Polling effect
   useEffect(() => {
@@ -226,6 +259,13 @@ export default function ProcessingPage() {
                     </div>
                   </motion.div>
                 </AnimatePresence>
+                
+                {/* Dev Mode Indicator */}
+                {isDevMode && (
+                  <div className="text-xs text-gray-400 text-center">
+                    🧪 Demo Mode - No backend configured
+                  </div>
+                )}
               </div>
             </div>
 

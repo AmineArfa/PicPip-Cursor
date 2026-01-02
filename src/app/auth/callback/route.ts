@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   const code = requestUrl.searchParams.get('code');
   const guestSessionId = requestUrl.searchParams.get('guestSessionId');
   const animationId = requestUrl.searchParams.get('animationId');
+  const next = requestUrl.searchParams.get('next');
 
   if (code) {
     const supabase = await createServerSupabaseClient();
@@ -28,7 +29,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL(`/celebration/${animationId}`, request.url));
     }
     
-    return NextResponse.redirect(new URL('/memories', request.url));
+    // Redirect to custom next URL or default to memories
+    const redirectTo = next ? decodeURIComponent(next) : '/memories';
+    return NextResponse.redirect(new URL(redirectTo, request.url));
   }
 
   // No code, redirect to home
