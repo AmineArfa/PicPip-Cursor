@@ -19,8 +19,8 @@ export interface RunwayJobResponse {
   failureCode?: string;
 }
 
-// Use production API URL
-const RUNWAY_API_URL = 'https://api.runwayml.com/v1';
+// Runway API URL - use api.dev.runwayml.com (not api.runwayml.com)
+const RUNWAY_API_URL = 'https://api.dev.runwayml.com/v1';
 
 // Demo video for simulation mode
 const DEMO_VIDEOS = [
@@ -38,6 +38,19 @@ class RunwayClient {
 
   async createImageToVideoJob(request: RunwayJobRequest): Promise<RunwayJobResponse> {
     try {
+      // Build request body - trying minimal payload first
+      // Based on Runway Gen-3 Alpha docs
+      const requestBody: Record<string, unknown> = {
+        promptImage: request.promptImage,  // Try camelCase
+        // Adding a default prompt text in case it's required
+        promptText: "Subtle motion, gentle animation",
+      };
+      
+      // Add model - Gen-3 Alpha Turbo
+      requestBody.model = request.model || 'gen3a_turbo';
+      
+      console.log('[Runway] Creating job with:', JSON.stringify(requestBody));
+      
       const response = await fetch(`${RUNWAY_API_URL}/image_to_video`, {
         method: 'POST',
         headers: {
@@ -45,13 +58,7 @@ class RunwayClient {
           'Content-Type': 'application/json',
           'X-Runway-Version': '2024-11-06',
         },
-        body: JSON.stringify({
-          promptImage: request.promptImage,
-          model: request.model || 'gen3a_turbo',
-          duration: request.duration || 5,
-          watermark: request.watermark ?? false,
-          seed: request.seed,
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {

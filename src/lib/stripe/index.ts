@@ -94,12 +94,8 @@ export async function createCheckoutSession(params: CreateCheckoutParams) {
         quantity: 1,
       },
     ],
-    // Enable Apple Pay / Google Pay
-    payment_method_options: {
-      card: {
-        setup_future_usage: product.mode === 'subscription' ? 'off_session' : undefined,
-      },
-    },
+    // Note: Don't set payment_method_options.card.setup_future_usage for subscriptions
+    // Stripe handles that automatically
   };
 
   // Add subscription-specific options
