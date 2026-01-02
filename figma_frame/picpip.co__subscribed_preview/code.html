@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PicPip.co: Subscribed Preview</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@300;400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#80f20d", // Slime Green
+                        "secondary": "#2979ff", // Electric Blue
+                        "background-light": "#fff9c4", // Lemon Fizz (approx)
+                        "background-dark": "#192210",
+                        "midnight": "#141811", // Midnight Ink
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem", 
+                        "lg": "2rem", 
+                        "xl": "3rem", 
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        'neobrutalism': '6px 6px 0px 0px #141811',
+                        'neobrutalism-sm': '4px 4px 0px 0px #141811',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom styles for specific Neo-Memphis patterns */
+        .bg-lemon-pattern {
+            background-color: #fffde7;
+            background-image: radial-gradient(#fdd835 15%, transparent 16%), radial-gradient(#fdd835 15%, transparent 16%);
+            background-size: 60px 60px;
+            background-position: 0 0, 30px 30px;
+        }
+        
+        .dark .bg-lemon-pattern {
+            background-color: #192210;
+            background-image: radial-gradient(#2a381e 15%, transparent 16%), radial-gradient(#2a381e 15%, transparent 16%);
+        }
+
+        .border-neobrutalism {
+            border: 4px solid #141811;
+        }
+    </style>
+</head>
+<body class="font-display antialiased">
+<div class="relative flex min-h-screen w-full flex-col bg-lemon-pattern group/design-root overflow-x-hidden">
+<!-- Navigation -->
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between whitespace-nowrap border-b-4 border-midnight bg-white px-6 py-4 lg:px-10 shadow-neobrutalism-sm relative z-20">
+<div class="flex items-center gap-4 text-midnight">
+<div class="size-10 bg-primary rounded-full border-2 border-midnight flex items-center justify-center shadow-[2px_2px_0px_0px_#141811]">
+<span class="material-symbols-outlined text-2xl font-bold">raven</span>
+</div>
+<h2 class="text-midnight text-2xl font-black leading-tight tracking-tight">PicPip.co</h2>
+</div>
+<div class="flex gap-4">
+<button class="hidden md:flex min-w-[120px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-12 px-6 bg-white border-4 border-midnight text-midnight text-lg font-bold shadow-neobrutalism-sm hover:translate-y-1 hover:shadow-none transition-all">
+<span class="truncate">New Pic</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-12 border-4 border-midnight shadow-neobrutalism-sm" data-alt="User profile avatar smiling elderly person" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAnpch6N20VDjTgNgikCfXQIsF5K4Brb0M9HJ8f_Cf0EG1_UQLPALdDkEAqwJpj1fe2tojHkZniQQmoqwMqH7ycWVjsgKA1fDPQfBW-OsGHQlyulK8jky5ohQkgsCtsy2kwNV-WlSZC3GDwUdBVkkYcUg1a6owyGJ4JtYUeBtxEsd4EOy7WyPajf4qqWMoMZ0iXQijjXQQRsVc-fETdiaMq3xl8p9rz-wvnLx6r9xsEXrqA5ulM1cKBQRqyQ02e-u8XecT8u3AB8Iw");'></div>
+</div>
+</header>
+<!-- Main Content Area -->
+<div class="flex flex-1 justify-center py-8 lg:py-12 px-4">
+<div class="layout-content-container flex flex-col max-w-[960px] flex-1 items-center gap-8">
+<!-- Headline Section -->
+<div class="text-center space-y-2">
+<h1 class="text-midnight tracking-tight text-4xl md:text-5xl lg:text-6xl font-black leading-tight px-4 pb-2">
+                        Look at it go!
+                    </h1>
+<p class="text-midnight/80 text-xl font-bold">Your photo is alive and looking great.</p>
+</div>
+<!-- Hero Card Section -->
+<div class="w-full max-w-4xl p-2 md:p-6 @container">
+<div class="flex flex-col items-center justify-center gap-8 lg:flex-row lg:items-start">
+<!-- Animated Photo Frame -->
+<div class="relative group w-full lg:w-2/3">
+<div class="w-full bg-white aspect-[4/3] rounded-[3rem] border-neobrutalism shadow-neobrutalism overflow-hidden relative z-10">
+<!-- Main Image -->
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Happy elderly couple dancing in animated photo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAs388feUtQ7Chhr4-EqbXvO4yALS5dWOlOTVwF41U8iDMx07rJBOpc7ssoWf6ibxIocVQ0tqGKsqC97cU5vydRUruHYOLcuKaPg0Ddmn5De-fyctEPgidIORNF1vKBl2KNXb2r9bAM_aEfDCN_n4U-YGiCPA2NQnA8YCp4HIDXqLytiPgfmrR_DSpirdxMSzo6HgbzxypjRddfSn_0TazZ2AyAehlgVqxvcGlVTDtnb86wosWgeSz3uZUd8aqVZMpEXgzhPGl2O4Y");'>
+</div>
+<!-- Subtle overlay to mimic animation play state -->
+<div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10">
+<span class="material-symbols-outlined text-white text-6xl drop-shadow-lg">play_circle</span>
+</div>
+</div>
+<!-- Decorative Elements behind frame -->
+<div class="absolute -top-6 -right-6 size-24 bg-secondary rounded-full border-4 border-midnight -z-0 hidden md:block"></div>
+<div class="absolute -bottom-6 -left-6 size-16 bg-primary rounded-full border-4 border-midnight -z-0 hidden md:block"></div>
+</div>
+<!-- Mascot & Feedback Side Panel -->
+<div class="flex w-full lg:w-1/3 flex-col items-center lg:items-start justify-center gap-6 py-4 px-4">
+<!-- Mascot Bubble -->
+<div class="relative bg-white p-6 rounded-3xl border-neobrutalism shadow-neobrutalism mb-4 w-full max-w-xs transform -rotate-2">
+<p class="text-midnight text-xl font-bold leading-snug text-center">
+                                    "Wow! That's a keeper! Ready to share?"
+                                </p>
+<div class="absolute -bottom-4 left-1/2 -translate-x-1/2 w-6 h-6 bg-white border-r-4 border-b-4 border-midnight transform rotate-45"></div>
+</div>
+<!-- Pip the Bird Mascot -->
+<div class="relative size-32 md:size-40 shrink-0">
+<div class="absolute inset-0 bg-primary rounded-full border-4 border-midnight overflow-hidden shadow-neobrutalism-sm flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1555685812-4b943f1cb0eb?q=80&amp;w=300&amp;auto=format&amp;fit=crop')] bg-cover bg-center" data-alt="Cute animated bird mascot illustration">
+<!-- Fallback if image doesn't load well, icon -->
+<span class="material-symbols-outlined text-6xl text-midnight hidden">flutter_dash</span>
+</div>
+<!-- Clapping wings effect (decorative elements) -->
+<div class="absolute top-1/2 -left-4 w-8 h-16 bg-white border-4 border-midnight rounded-l-full transform -translate-y-1/2 -rotate-12"></div>
+<div class="absolute top-1/2 -right-4 w-8 h-16 bg-white border-4 border-midnight rounded-r-full transform -translate-y-1/2 rotate-12"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Primary Actions -->
+<div class="flex flex-col md:flex-row gap-6 md:gap-8 w-full max-w-3xl justify-center items-center mt-4 px-4">
+<!-- Download Button -->
+<button class="group relative flex w-full md:w-1/2 max-w-[400px] h-20 md:h-24 cursor-pointer items-center justify-center overflow-visible rounded-full bg-primary border-neobrutalism shadow-neobrutalism hover:translate-y-1 hover:shadow-none active:translate-y-2 transition-all duration-200">
+<div class="flex items-center gap-3 md:gap-4 px-6">
+<span class="material-symbols-outlined text-midnight text-4xl md:text-5xl font-black">download</span>
+<span class="text-midnight text-2xl md:text-3xl font-black tracking-wide uppercase">Download</span>
+</div>
+</button>
+<!-- Share Button -->
+<button class="group relative flex w-full md:w-1/2 max-w-[400px] h-20 md:h-24 cursor-pointer items-center justify-center overflow-visible rounded-full bg-secondary border-neobrutalism shadow-neobrutalism hover:translate-y-1 hover:shadow-none active:translate-y-2 transition-all duration-200">
+<div class="flex items-center gap-3 md:gap-4 px-6">
+<span class="material-symbols-outlined text-white text-4xl md:text-5xl font-black">chat_bubble</span>
+<span class="text-white text-2xl md:text-3xl font-black tracking-wide uppercase">Share</span>
+</div>
+</button>
+</div>
+<!-- Secondary Loop Action -->
+<div class="pt-8 pb-12">
+<button class="flex items-center gap-2 text-midnight/70 hover:text-midnight font-bold text-lg underline decoration-4 decoration-primary/50 hover:decoration-primary transition-all">
+<span class="material-symbols-outlined">restart_alt</span>
+                        Create another animation
+                    </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PicPip.co: Trial Preview</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&amp;family=Spline+Sans:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#49ec13", // Slime Green
+                        "background-light": "#FFF9C4", // Lemon Fizz
+                        "background-dark": "#152210",
+                    },
+                    fontFamily: {
+                        "display": ["Spline Sans", "sans-serif"],
+                        "fun": ["Fredoka", "cursive"],
+                    },
+                    borderRadius: { "DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px" },
+                    keyframes: {
+                        bounceSoft: {
+                            '0%, 100%': { transform: 'translateY(-5%)' },
+                            '50%': { transform: 'translateY(5%)' },
+                        }
+                    },
+                    animation: {
+                        bounceSoft: 'bounceSoft 3s infinite ease-in-out',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom styles for the Neo-Memphis pattern */
+        .bg-pattern {
+            background-image: radial-gradient(#131811 1px, transparent 1px);
+            background-size: 24px 24px;
+            opacity: 0.1;
+        }
+        
+        /* Hard shadow utility */
+        .neo-shadow {
+            box-shadow: 6px 6px 0px 0px #000000;
+        }
+        .neo-shadow-lg {
+            box-shadow: 10px 10px 0px 0px #000000;
+        }
+        
+        /* Typography overrides based on user request */
+        .font-fredoka {
+            font-family: "Fredoka", cursive;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display selection:bg-primary selection:text-black overflow-x-hidden">
+<!-- Background Pattern Overlay -->
+<div class="fixed inset-0 pointer-events-none bg-pattern z-0 mix-blend-multiply dark:mix-blend-soft-light"></div>
+<div class="relative z-10 flex flex-col min-h-screen w-full">
+<!-- Header -->
+<div class="w-full flex justify-center py-6 px-4">
+<header class="flex items-center gap-3 bg-white border-4 border-black px-6 py-2 rounded-full neo-shadow">
+<div class="size-8 text-[#131811]">
+<!-- Using Material Symbol as logo placeholder or icon -->
+<span class="material-symbols-outlined text-4xl" style="font-size: 32px;">photo_camera_back</span>
+</div>
+<h2 class="text-[#131811] text-2xl font-fredoka font-bold leading-tight tracking-wide">PicPip.co</h2>
+</header>
+</div>
+<!-- Main Content Funnel -->
+<main class="flex-1 flex flex-col items-center justify-center px-4 pb-12 w-full max-w-5xl mx-auto">
+<!-- Headline -->
+<div class="mb-8 text-center max-w-2xl">
+<h1 class="text-[#131811] font-fredoka text-[42px] md:text-[56px] font-bold leading-[1.1] drop-shadow-sm">
+                    Look at it go!
+                </h1>
+<p class="text-gray-800 text-xl md:text-2xl mt-4 font-semibold opacity-90">
+                    We've brought your memory to life.
+                </p>
+</div>
+<!-- Preview Stage -->
+<div class="relative w-full max-w-[640px] aspect-[4/3] mb-12 group">
+<!-- The Photo Frame -->
+<div class="absolute inset-0 bg-white border-4 border-black rounded-[2rem] overflow-hidden neo-shadow-lg z-10 flex flex-col">
+<!-- Image Content -->
+<div class="relative w-full h-full bg-gray-100 overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Elderly woman smiling and waving in a garden setting" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAXC7NPPeJ6RSkbVNRZQJwghSKijmtLjPKsi2pGCeo26JexyMp248n_PJOoppSG5Oh7dsndYLYbPLj8j-HUd-ZkROpTAzvZCWLhlHo94WxB3um8VO0ZwuG8qjjHhCjBHwCvhIrxKwY8sxWbkbH4jOkEu8lZsQomi4Nz1Njj6NYJ1IIkSmXnF0XBKpdhgt7qmQ7LRxb_e2_61gMz1NzWVsguJzVXH2HmSVSs8I8Yzz3CzuynInlFfT66Xb_tiE_H30D0THISWXDHrGQ");'>
+</div>
+<!-- Play Button Overlay (Optional visual cue) -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="bg-black/20 rounded-full p-4 backdrop-blur-sm border-2 border-white/50">
+<span class="material-symbols-outlined text-white text-6xl drop-shadow-md">play_arrow</span>
+</div>
+</div>
+<!-- Bouncing Watermark -->
+<div class="absolute inset-0 flex items-end justify-center pb-8 pointer-events-none">
+<div class="animate-bounceSoft bg-white/90 border-2 border-black px-6 py-2 rounded-full shadow-lg transform -rotate-2">
+<span class="text-black font-fredoka font-bold text-xl opacity-70">PicPip.co</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Decorative elements behind frame -->
+<div class="absolute -right-6 -bottom-6 w-24 h-24 bg-primary rounded-full border-4 border-black -z-0"></div>
+<div class="absolute -left-8 -top-8 w-16 h-16 bg-[#ff6b6b] rounded-full border-4 border-black -z-0 hidden md:block"></div>
+</div>
+<!-- Interaction Zone -->
+<div class="flex flex-col items-center w-full max-w-3xl gap-6 relative">
+<!-- Mascot: Pip the Bird (Floating/Clapping) -->
+<div class="absolute -top-32 -right-4 md:-right-24 w-32 md:w-48 h-auto z-20 pointer-events-none transform rotate-12">
+<!-- Using an abstract shape to represent Pip for this template, 
+                          but describing it as the character in alt text -->
+<div class="relative w-full aspect-square">
+<img alt="Cartoon bird mascot named Pip clapping wings excitedly" class="w-full h-full object-contain drop-shadow-xl rounded-full border-4 border-black bg-white" data-alt="Cartoon bird mascot named Pip clapping wings excitedly" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB4GlBnZauROccCIu2ig8kdykP2XHyNPEH9UkFn8m5moerfJcvSFVnGU-Gfvd7h4xhzr0bJERNzBHRVc4cHzSfaDU7ZcQLF4KU75NUBjq6gdMoI6tb09GOYSTIPvYWW0QhOlwLgcQQINZTDtCzb1Ru5EekTmO3pENIR0RdK_U97M70UZcx3HIV3c5ej-y8wtXpv8cpEALCXQMKXOdGrml2GsE-zOOKZcJXfCR_raVTKFsGckIzT-QTO0Y1hEM1xlht5k8d_e4POKPE"/>
+</div>
+<!-- Speech bubble -->
+<div class="absolute -top-12 -left-12 bg-white border-4 border-black p-3 rounded-2xl neo-shadow rounded-br-none min-w-[120px] text-center">
+<span class="font-fredoka font-bold text-lg">WOW!</span>
+</div>
+</div>
+<!-- Primary CTA -->
+<button class="relative group w-full max-w-[580px] hover:-translate-y-1 hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] transition-all active:translate-y-2 active:shadow-none duration-200">
+<div class="bg-primary text-[#131811] border-4 border-black rounded-full neo-shadow h-20 md:h-24 flex items-center justify-center px-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-4xl font-bold">favorite</span>
+<span class="font-fredoka font-black text-2xl md:text-3xl tracking-wide uppercase truncate">
+                                I LOVE IT! REMOVE WATERMARK
+                            </span>
+</div>
+</div>
+</button>
+<!-- Secondary Link -->
+<div class="mt-2">
+<a class="text-[#D32F2F] font-fredoka text-[22px] md:text-[24px] font-bold border-b-2 border-[#D32F2F]/30 hover:border-[#D32F2F] hover:text-[#B71C1C] transition-colors py-1" href="#">
+                        Try a different photo
+                    </a>
+</div>
+</div>
+<!-- Trust Indicators (Subtle) -->
+<div class="mt-12 flex gap-6 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-xl">lock</span>
+<span class="font-bold text-sm">Secure &amp; Private</span>
+</div>
+</div>
+</main>
+</div>
+<script>
+        // Simple script to handle 'dark' class if needed, though this design is heavily styled for light mode 'Poppy' aesthetic.
+        // Keeping it minimal as requested.
+    </script>
+</body></html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PicPip.co - The Delivery Wall</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff61d2",
+                        "secondary": "#00FFFF", // Electric Cyan
+                        "accent": "#B4F8C8", // Slime Green approximation
+                        "background-light": "#FFF7AE", // Lemon Fizz
+                        "background-dark": "#230f1d",
+                        "black-ink": "#181016",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem", 
+                        "lg": "2rem", 
+                        "xl": "3rem", 
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        'neo': '6px 6px 0px 0px #181016',
+                        'neo-lg': '10px 10px 0px 0px #181016',
+                        'neo-sm': '3px 3px 0px 0px #181016',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom Dot Pattern for Background */
+        .bg-pattern {
+            background-color: #FFF7AE;
+            background-image: radial-gradient(#181016 1.5px, transparent 1.5px);
+            background-size: 32px 32px;
+        }
+        
+        .text-shadow-sm {
+            text-shadow: 1px 1px 0px #fff;
+        }
+    </style>
+</head>
+<body class="font-display antialiased">
+<div class="relative flex h-auto min-h-screen w-full flex-col bg-pattern overflow-x-hidden text-black-ink">
+<!-- Header -->
+<header class="w-full border-b-4 border-black-ink bg-white px-6 py-4 sticky top-0 z-50 shadow-neo-sm">
+<div class="mx-auto flex max-w-7xl items-center justify-between">
+<div class="flex items-center gap-3 select-none cursor-pointer">
+<div class="flex size-10 items-center justify-center rounded-full bg-primary border-4 border-black-ink">
+<span class="material-symbols-outlined text-white text-2xl font-black">photo_camera</span>
+</div>
+<h2 class="text-2xl font-extrabold tracking-tight text-black-ink">PicPip.co</h2>
+</div>
+<!-- Optional: Minimal nav element -->
+<div class="hidden sm:block">
+<span class="text-lg font-bold">Step 3 of 3</span>
+</div>
+</div>
+</header>
+<main class="layout-container flex h-full grow flex-col py-8 sm:py-12">
+<div class="px-4 flex flex-1 justify-center">
+<div class="layout-content-container flex flex-col max-w-[1080px] flex-1 items-center gap-10">
+<!-- Headline Section -->
+<div class="w-full text-center space-y-2">
+<div class="inline-flex items-center justify-center size-20 rounded-full bg-white border-4 border-black-ink shadow-neo mb-4">
+<span class="material-symbols-outlined text-4xl text-green-500">check_circle</span>
+</div>
+<h1 class="text-4xl sm:text-5xl md:text-6xl font-extrabold leading-tight text-black-ink">
+                            Your video is ready!
+                        </h1>
+<p class="text-xl sm:text-2xl font-bold text-black-ink/80">
+                            It looks amazing. Let's get it to you.
+                        </p>
+</div>
+<!-- Huge Email Input -->
+<div class="w-full max-w-3xl transform transition-transform hover:scale-[1.01]">
+<label class="flex flex-col w-full gap-3">
+<p class="text-2xl sm:text-3xl font-extrabold text-black-ink ml-4">
+                                Where should we send your video?
+                            </p>
+<div class="relative group">
+<div class="absolute left-6 top-1/2 -translate-y-1/2 text-black-ink/40 pointer-events-none">
+<span class="material-symbols-outlined text-4xl">mail</span>
+</div>
+<input class="w-full h-24 pl-20 pr-8 rounded-full border-4 border-black-ink bg-white text-2xl sm:text-3xl font-bold placeholder:text-black-ink/30 focus:outline-none focus:ring-0 focus:border-primary shadow-neo-lg transition-all" placeholder="Enter your email here..." type="email" value=""/>
+</div>
+</label>
+</div>
+<!-- Pricing Cards Grid -->
+<div class="w-full grid grid-cols-1 lg:grid-cols-3 gap-8 mt-4 items-stretch">
+<!-- Card A: Trial (Pink) -->
+<div class="relative flex flex-col rounded-3xl border-4 border-black-ink bg-primary p-6 shadow-neo transform transition-transform hover:-translate-y-2 hover:shadow-neo-lg cursor-pointer">
+<div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-[#FFD700] border-4 border-black-ink text-black-ink text-sm font-extrabold px-4 py-2 rounded-full uppercase tracking-wider shadow-sm z-10 whitespace-nowrap">
+<span class="material-symbols-outlined align-middle text-lg mr-1">star</span> Best Value
+                            </div>
+<div class="flex flex-col gap-4 flex-1 items-center text-center mt-4">
+<h3 class="text-2xl font-extrabold leading-tight text-white drop-shadow-md">7 Days Free</h3>
+<div class="bg-white/20 rounded-xl p-2 w-full">
+<p class="text-black-ink font-bold text-lg">then $9.99/mo</p>
+</div>
+<p class="text-black-ink text-5xl font-black tracking-tighter my-2">Free<span class="text-2xl align-top text-white">+</span></p>
+<p class="text-white font-bold text-lg">Unlimited Animations</p>
+</div>
+<div class="mt-6">
+<button class="w-full h-14 bg-white text-black-ink border-4 border-black-ink rounded-full text-xl font-extrabold uppercase hover:bg-black-ink hover:text-white transition-colors">
+                                    Start Trial
+                                </button>
+</div>
+</div>
+<!-- Card B: Single (Cyan) -->
+<div class="relative flex flex-col rounded-3xl border-4 border-black-ink bg-secondary p-6 shadow-neo transform transition-transform hover:-translate-y-2 hover:shadow-neo-lg cursor-pointer lg:mt-6">
+<div class="flex flex-col gap-4 flex-1 items-center text-center">
+<h3 class="text-2xl font-extrabold leading-tight text-black-ink">Just this one</h3>
+<div class="bg-white/40 rounded-xl p-2 w-full">
+<p class="text-black-ink font-bold text-lg">One-time payment</p>
+</div>
+<p class="text-black-ink text-5xl font-black tracking-tighter my-2">$5.00</p>
+<p class="text-black-ink/70 font-bold text-lg">Single HD Download</p>
+</div>
+<div class="mt-6">
+<button class="w-full h-14 bg-white text-black-ink border-4 border-black-ink rounded-full text-xl font-extrabold uppercase hover:bg-black-ink hover:text-white transition-colors">
+                                    Buy One
+                                </button>
+</div>
+</div>
+<!-- Card C: Bundle (Green) -->
+<div class="relative flex flex-col rounded-3xl border-4 border-black-ink bg-[#a3ff00] p-6 shadow-neo transform transition-transform hover:-translate-y-2 hover:shadow-neo-lg cursor-pointer lg:mt-2">
+<div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-white border-4 border-black-ink text-black-ink text-sm font-extrabold px-4 py-2 rounded-full uppercase tracking-wider shadow-sm z-10 whitespace-nowrap">
+                                Best For Family
+                            </div>
+<div class="flex flex-col gap-4 flex-1 items-center text-center mt-4">
+<h3 class="text-2xl font-extrabold leading-tight text-black-ink">Bundle Pack</h3>
+<div class="bg-white/40 rounded-xl p-2 w-full">
+<p class="text-black-ink font-bold text-lg">10 Photos</p>
+</div>
+<p class="text-black-ink text-5xl font-black tracking-tighter my-2">$19.99</p>
+<p class="text-black-ink/70 font-bold text-lg">Save 60% instantly</p>
+</div>
+<div class="mt-6">
+<button class="w-full h-14 bg-white text-black-ink border-4 border-black-ink rounded-full text-xl font-extrabold uppercase hover:bg-black-ink hover:text-white transition-colors">
+                                    Buy Bundle
+                                </button>
+</div>
+</div>
+</div>
+<!-- Payment & Trust Section -->
+<div class="w-full max-w-2xl flex flex-col items-center gap-8 mt-8">
+<!-- Payment Buttons -->
+<div class="flex flex-col sm:flex-row gap-4 w-full justify-center">
+<button class="flex-1 min-w-[200px] h-16 bg-black text-white border-4 border-black-ink rounded-full shadow-neo flex items-center justify-center gap-3 transform active:translate-y-1 active:shadow-none transition-all hover:bg-gray-900">
+<span class="material-symbols-outlined text-3xl">ios</span>
+<span class="text-2xl font-bold tracking-tight">Pay</span>
+</button>
+<button class="flex-1 min-w-[200px] h-16 bg-white text-black-ink border-4 border-black-ink rounded-full shadow-neo flex items-center justify-center gap-3 transform active:translate-y-1 active:shadow-none transition-all hover:bg-gray-50">
+<div class="flex items-center justify-center size-8 bg-white rounded-full">
+<!-- Simple Google G Icon via Text/CSS roughly or SVG if I could but using symbol -->
+<img alt="Google Logo" class="h-6 w-6" data-alt="Google Pay Logo" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBanfyDpxLaT2nbI7i7bxrL-8piCiRMx6Qs_Tgl8QhDaEJYdDcEVR7mYrhbnDF6Ud-vX6_fzqv_H7XWmYk_YJhyW7xDfOUbVVlADABHJUFjlZFmSf_SWv6hL79ccKRWUIs5ZT6P3uApGQaRuqBrcqOC80VLA_5CKyU9enaV9Yj16M33u94Oh63wccY53O5b0QzYdtrMP2Mh6u8eC8OvdQIrECcDJ2ijfb2Y2HAXqqlmFLwvO04rCn0rkioBxbjtKwpMfy63fPOBk6k"/>
+</div>
+<span class="text-2xl font-bold tracking-tight">Pay</span>
+</button>
+</div>
+<!-- Trust Badge -->
+<div class="flex items-center justify-center gap-3 bg-white/60 backdrop-blur-sm border-2 border-black-ink/10 px-6 py-3 rounded-full">
+<span class="material-symbols-outlined text-green-600 text-4xl" style="font-variation-settings: 'FILL' 1;">security</span>
+<div class="flex flex-col text-left">
+<span class="text-lg font-black uppercase text-black-ink leading-none">100% Safe &amp; Secure</span>
+<span class="text-sm font-bold text-black-ink/60 leading-none mt-1">Encrypted Checkout</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Simple -->
+<footer class="w-full py-6 text-center text-black-ink/50 font-bold text-sm">
+<p>© 2024 PicPip.co. All memories preserved.</p>
+</footer>
+</div>
+</body></html>

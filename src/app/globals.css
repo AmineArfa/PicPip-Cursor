@@ -1,0 +1,105 @@
+@import "tailwindcss";
+
+/* PicPip Design System Tokens */
+@theme inline {
+  /* Colors */
+  --color-primary: #ff61d2;
+  --color-secondary: #2962ff;
+  --color-cyan: #00ffff;
+  --color-lime: #a3ff00;
+  --color-lemon-fizz: #fffde7;
+  --color-lemon-fizz-dark: #fff7ae;
+  --color-black-ink: #181016;
+  --color-white: #ffffff;
+  
+  /* Fonts */
+  --font-display: "Fredoka", sans-serif;
+  --font-body: "Plus Jakarta Sans", sans-serif;
+  
+  /* Border Radius */
+  --radius-sm: 0.5rem;
+  --radius-DEFAULT: 1rem;
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+  --radius-full: 9999px;
+  
+  /* Shadows - Neobrutalism Style */
+  --shadow-neo: 6px 6px 0px 0px #181016;
+  --shadow-neo-sm: 4px 4px 0px 0px #181016;
+  --shadow-neo-lg: 10px 10px 0px 0px #181016;
+}
+
+/* Base styles */
+:root {
+  --background: #fffde7;
+  --foreground: #181016;
+}
+
+/* Background Dot Pattern */
+.bg-pattern {
+  background-color: var(--background);
+  background-image: radial-gradient(#ffffff 20%, transparent 20%), radial-gradient(#ffffff 20%, transparent 20%);
+  background-position: 0 0, 25px 25px;
+  background-size: 50px 50px;
+}
+
+.bg-pattern-dense {
+  background-color: var(--background);
+  background-image: radial-gradient(#181016 1.5px, transparent 1.5px);
+  background-size: 32px 32px;
+}
+
+/* Dark mode pattern */
+.dark .bg-pattern {
+  background-color: #231f20;
+  background-image: radial-gradient(#2d282b 20%, transparent 20%), radial-gradient(#2d282b 20%, transparent 20%);
+}
+
+/* Thick border utility */
+.border-thick {
+  border-width: 4px;
+  border-style: solid;
+  border-color: #181016;
+}
+
+/* Custom animations */
+@keyframes pulse-scale {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+
+.animate-pulse-slow {
+  animation: pulse-scale 3s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Hide scrollbar but allow scrolling */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Base body styles */
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-body);
+}
+
+/* Focus visible for accessibility */
+*:focus-visible {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 2px;
+}

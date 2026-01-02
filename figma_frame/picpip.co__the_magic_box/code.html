@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PicPip.co: The Magic Box</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&amp;family=Plus+Jakarta+Sans:wght@400;500;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff61d2",
+                        "background-light": "#f8f5f8",
+                        "background-dark": "#230f1d",
+                        "vibrant-purple": "#9D50BB",
+                        "midnight-ink": "#181016",
+                        "tangerine": "#FF9F1C",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"],
+                        "fredoka": ["Fredoka One", "cursive"],
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "2rem", "xl": "3rem", "full": "9999px"},
+                    boxShadow: {
+                        'neo': '8px 8px 0px 0px #181016',
+                        'neo-sm': '4px 4px 0px 0px #181016',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 700, 'GRAD' 0, 'opsz' 48;
+        }
+    </style>
+</head>
+<body class="bg-vibrant-purple min-h-screen flex flex-col font-display selection:bg-primary selection:text-white overflow-x-hidden">
+<!-- Top Navigation -->
+<header class="w-full bg-white border-b-4 border-midnight-ink px-6 py-4 lg:px-12 flex justify-between items-center z-20 relative shadow-neo-sm">
+<div class="flex items-center gap-3">
+<div class="size-10 bg-primary rounded-full border-4 border-midnight-ink flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-size: 24px;">auto_fix_high</span>
+</div>
+<h1 class="font-fredoka text-midnight-ink text-2xl lg:text-3xl tracking-wide">PicPip.co</h1>
+</div>
+<div class="hidden sm:flex px-4 py-2 bg-background-light border-4 border-midnight-ink rounded-full font-bold text-midnight-ink items-center gap-2">
+<span class="material-symbols-outlined text-tangerine">account_circle</span>
+<span class="text-lg">My Account</span>
+</div>
+</header>
+<!-- Main Layout Container -->
+<main class="flex-grow flex flex-col items-center justify-center p-4 lg:p-8 relative overflow-hidden">
+<!-- Decorative Background Elements (Stars/Shapes) -->
+<div class="absolute top-20 left-10 text-yellow-300 opacity-80 hidden lg:block">
+<span class="material-symbols-outlined" style="font-size: 64px;">star</span>
+</div>
+<div class="absolute bottom-20 right-20 text-primary opacity-80 hidden lg:block">
+<span class="material-symbols-outlined" style="font-size: 80px;">pentagon</span>
+</div>
+<div class="absolute top-40 right-10 text-tangerine opacity-80 hidden lg:block">
+<span class="material-symbols-outlined" style="font-size: 48px;">circle</span>
+</div>
+<div class="w-full max-w-4xl flex flex-col items-center gap-8 z-10">
+<!-- Heading Section -->
+<div class="text-center w-full px-4">
+<h2 class="font-fredoka text-white text-4xl lg:text-6xl leading-tight drop-shadow-[4px_4px_0px_#181016] stroke-black">
+                    Pip is making your magic... <br class="hidden md:block"/> stay right here!
+                </h2>
+</div>
+<!-- The Magic Machine Card -->
+<div class="relative w-full bg-white border-4 border-midnight-ink rounded-3xl p-6 lg:p-10 shadow-neo flex flex-col lg:flex-row gap-8 items-center justify-center">
+<!-- Mascot Overlay (Pip the Bird) -->
+<div class="absolute -top-16 -right-6 lg:-right-16 lg:-top-12 z-20 transform rotate-6">
+<div class="w-32 h-32 lg:w-48 lg:h-48 rounded-full bg-tangerine border-4 border-midnight-ink overflow-hidden shadow-neo flex items-center justify-center bg-[url('https://images.unsplash.com/photo-1542456073-678096f9f38f?q=80&amp;w=600&amp;auto=format&amp;fit=crop')] bg-cover bg-center" data-alt="Cartoon colorful bird wearing a wizard hat holding a magic wand">
+</div>
+<!-- Magic sparkles around Pip -->
+<div class="absolute -top-2 -left-4 text-primary bg-white rounded-full border-2 border-midnight-ink p-1">
+<span class="material-symbols-outlined text-2xl">auto_awesome</span>
+</div>
+</div>
+<!-- Inner Machine Display (User Photo) -->
+<div class="relative w-full lg:w-2/3 aspect-[4/3] bg-background-light rounded-xl border-4 border-midnight-ink overflow-hidden group">
+<!-- "Screen" Glare Effect -->
+<div class="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-transparent via-white/20 to-transparent z-10 pointer-events-none"></div>
+<!-- User Image Placeholder -->
+<div class="w-full h-full bg-cover bg-center" data-alt="Senior woman smiling happily in a garden setting" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBSBUUYhwf7Z3i9U8Hub0Ls4lpTmDWB1uEgbh84JWFPHWyRelIeOYassNbNwrQWUq6292OP_Y7zgKyK0gK_mHNb8gVEKV5q2ktGx3ddb4hO8KEN6v6s4wsZ1YuJXViBensJzf3SgPaq47i4-swsnxvHpBAAjTUWv51Sm3STtUdj_uKEo--zo6dBrgSFjYabU4dOraXvBm7nLlIg-9p6Z5xWsGrfzk6WmPgaquUkW616zFm2X5Mn9JT1nXsVhrBmoES85H4dkKOL4Pg');"></div>
+<!-- Processing Overlay -->
+<div class="absolute inset-0 bg-primary/30 flex items-center justify-center backdrop-blur-[2px]">
+<div class="bg-white border-4 border-midnight-ink rounded-full px-6 py-3 flex items-center gap-3 shadow-neo-sm">
+<span class="material-symbols-outlined text-primary text-3xl animate-spin">settings</span>
+<span class="font-fredoka text-xl text-midnight-ink">Magifying...</span>
+</div>
+</div>
+</div>
+<!-- Progress Section (Right side or Bottom) -->
+<div class="w-full lg:w-1/3 flex flex-col gap-6 justify-center">
+<div class="flex flex-col gap-2">
+<div class="flex justify-between items-end px-2">
+<span class="font-bold text-xl lg:text-2xl text-midnight-ink">Sprinkling Glitter</span>
+<span class="font-fredoka text-2xl text-primary">75%</span>
+</div>
+<!-- Chunky Progress Bar -->
+<div class="w-full h-8 lg:h-10 bg-background-light border-4 border-midnight-ink rounded-full overflow-hidden relative shadow-[2px_2px_0px_0px_#181016]">
+<!-- Striped animated background pattern for bar could go here, keeping it simple solid per request -->
+<div class="h-full bg-tangerine border-r-4 border-midnight-ink w-[75%] rounded-l-md relative">
+<!-- Shine effect on bar -->
+<div class="absolute top-2 left-2 right-2 h-2 bg-white/30 rounded-full"></div>
+</div>
+</div>
+</div>
+<div class="bg-blue-100 border-4 border-midnight-ink p-4 rounded-xl shadow-[4px_4px_0px_0px_#181016]">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-midnight-ink text-3xl">info</span>
+<p class="text-midnight-ink font-bold text-lg leading-tight">
+                                Did you know? Pip has processed over 1 million smiles today!
+                            </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Warning -->
+<div class="bg-white border-4 border-midnight-ink rounded-2xl px-8 py-4 shadow-neo flex items-center gap-4 max-w-2xl transform hover:-translate-y-1 transition-transform">
+<span class="material-symbols-outlined text-red-500 text-4xl">warning</span>
+<p class="font-bold text-midnight-ink text-xl lg:text-2xl leading-tight">
+                    Please keep this window open until the magic is done.
+                </p>
+</div>
+</div>
+</main>
+</body></html>

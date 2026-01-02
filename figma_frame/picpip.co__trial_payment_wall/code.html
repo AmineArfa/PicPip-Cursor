@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PicPip.co - Unlock Your Photo Magic</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@300..700&amp;family=Plus+Jakarta+Sans:ital,wght@0,200..800;1,200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f4258c", // Bubblegum Pink
+                        "cyan-electric": "#00E0FF",
+                        "green-slime": "#B8FF01",
+                        "yellow-lemon": "#FFF6C3", // Lemon Fizz base
+                        "yellow-pattern": "#FFEBA0", // Slightly darker for pattern
+                        "background-light": "#FFF6C3",
+                        "background-dark": "#221019",
+                        "text-dark": "#181114",
+                    },
+                    fontFamily: {
+                        "display": ["Fredoka", "cursive"],
+                        "body": ["Plus Jakarta Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "1rem", "lg": "1.5rem", "xl": "2rem", "2xl": "2.5rem", "3xl": "3rem", "full": "9999px"},
+                    boxShadow: {
+                        'neopop': '4px 4px 0px 0px rgba(24, 17, 20, 1)',
+                        'neopop-hover': '6px 6px 0px 0px rgba(24, 17, 20, 1)',
+                        'neopop-active': '2px 2px 0px 0px rgba(24, 17, 20, 1)',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        h1, h2, h3, h4, h5, h6, .font-display {
+            font-family: "Fredoka", cursive;
+        }
+        
+        /* Subtle Memphis Pattern Background */
+        .bg-pattern {
+            background-color: #FFF6C3;
+            background-image: radial-gradient(#FFD700 15%, transparent 16%),
+            radial-gradient(#FFD700 15%, transparent 16%);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+        }
+    </style>
+</head>
+<body class="bg-pattern min-h-screen text-[#181114]">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Header -->
+<header class="flex items-center justify-between px-6 py-4 md:px-12 md:py-6 max-w-7xl mx-auto w-full">
+<div class="flex items-center gap-2">
+<div class="size-8 md:size-10 bg-[#f4258c] rounded-full flex items-center justify-center text-white border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+<span class="material-symbols-outlined text-xl md:text-2xl">auto_awesome</span>
+</div>
+<h2 class="text-[#181114] text-2xl md:text-3xl font-display font-bold tracking-tight">PicPip.co</h2>
+</div>
+<button class="flex size-10 md:size-12 items-center justify-center rounded-full bg-white border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,1)] hover:shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] active:translate-y-[2px] active:translate-x-[2px] transition-all cursor-pointer">
+<span class="material-symbols-outlined text-2xl">close</span>
+</button>
+</header>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col items-center justify-start px-4 pb-24 md:pb-12 pt-4 w-full max-w-7xl mx-auto">
+<!-- Page Heading -->
+<div class="text-center max-w-2xl mx-auto mb-8 md:mb-12">
+<h1 class="text-4xl md:text-6xl font-display font-black leading-[1.1] mb-4 text-[#181114]">Unlock Your Photo Magic!</h1>
+<p class="text-xl md:text-2xl font-body font-medium text-[#181114]/80 px-4">
+                    Pick a plan to remove the watermark and keep your memories forever.
+                </p>
+</div>
+<!-- Pricing Cards Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8 w-full max-w-6xl px-2 md:px-6 items-stretch">
+<!-- Card B: Single Snap (Cyan) -->
+<div class="relative group cursor-pointer order-2 md:order-1">
+<div class="h-full flex flex-col justify-between rounded-3xl border-4 border-black bg-cyan-electric p-6 md:p-8 shadow-neopop hover:shadow-neopop-hover hover:-translate-y-1 transition-all duration-200">
+<div class="flex flex-col gap-4">
+<h3 class="text-2xl font-display font-black uppercase">SINGLE SNAP</h3>
+<div class="w-12 h-2 bg-black rounded-full opacity-20"></div>
+<div class="flex flex-col">
+<span class="text-5xl font-display font-black leading-none">$5.00</span>
+<span class="text-xl font-display font-bold mt-2">Just for this photo</span>
+</div>
+</div>
+<div class="mt-6 flex justify-center">
+<div class="size-16 rounded-full bg-white border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+<span class="material-symbols-outlined text-4xl text-black">photo</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card A: Unlimited Magic (Pink - Featured) -->
+<div class="relative group cursor-pointer order-1 md:order-2 transform md:-translate-y-4 z-10">
+<!-- Badge -->
+<div class="absolute -top-5 left-1/2 -translate-x-1/2 bg-[#FFD700] border-4 border-black text-black px-6 py-2 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] z-20 whitespace-nowrap">
+<span class="text-lg font-display font-black tracking-wide">🏆 BEST VALUE</span>
+</div>
+<div class="h-full flex flex-col justify-between rounded-3xl border-4 border-black bg-primary p-6 md:p-8 pt-10 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] hover:shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-1 transition-all duration-200">
+<div class="flex flex-col gap-4 text-white">
+<h3 class="text-3xl font-display font-black uppercase text-white drop-shadow-sm">UNLIMITED MAGIC</h3>
+<div class="w-16 h-2 bg-white rounded-full opacity-40"></div>
+<div class="flex flex-col">
+<span class="text-6xl font-display font-black leading-none drop-shadow-md">7 Days Free</span>
+<span class="text-2xl font-display font-bold mt-3 opacity-90">then $9.99/mo</span>
+</div>
+</div>
+<div class="mt-8">
+<div class="w-full h-14 rounded-xl bg-white border-2 border-black flex items-center justify-center gap-2 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
+<span class="material-symbols-outlined text-3xl text-primary">auto_fix_high</span>
+<span class="text-xl font-display font-bold text-black">START TRIAL</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card C: Family Pack (Green) -->
+<div class="relative group cursor-pointer order-3">
+<!-- Badge -->
+<div class="absolute -top-4 right-4 md:right-auto md:left-1/2 md:-translate-x-1/2 bg-white border-2 border-black text-black px-4 py-1 rounded-full shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] z-20 whitespace-nowrap rotate-2">
+<span class="text-sm font-display font-black tracking-wide">👨‍👩‍👧‍👦 FAMILY PACK</span>
+</div>
+<div class="h-full flex flex-col justify-between rounded-3xl border-4 border-black bg-green-slime p-6 md:p-8 shadow-neopop hover:shadow-neopop-hover hover:-translate-y-1 transition-all duration-200">
+<div class="flex flex-col gap-4">
+<h3 class="text-2xl font-display font-black uppercase">10 PHOTOS</h3>
+<div class="w-12 h-2 bg-black rounded-full opacity-20"></div>
+<div class="flex flex-col">
+<span class="text-5xl font-display font-black leading-none">$19.99</span>
+<span class="text-xl font-display font-bold mt-2">Bundle &amp; Save</span>
+</div>
+</div>
+<div class="mt-6 flex justify-center">
+<div class="size-16 rounded-full bg-white border-2 border-black flex items-center justify-center shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+<span class="material-symbols-outlined text-4xl text-black">collections</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Trust Badge -->
+<div class="mt-12 flex flex-col items-center justify-center gap-3">
+<div class="flex items-center gap-2 px-6 py-2 bg-white/60 border-2 border-black/10 rounded-full backdrop-blur-sm">
+<span class="material-symbols-outlined text-[#f4258c] text-3xl">verified_user</span>
+<span class="text-lg font-display font-bold text-[#181114]">100% Safe &amp; Secure</span>
+</div>
+</div>
+<!-- Payment Buttons Area (Sticky on mobile if needed, usually prominent at bottom) -->
+<div class="w-full max-w-md mx-auto mt-8 flex flex-col gap-4 px-4">
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-16 px-5 bg-black text-white hover:bg-gray-900 shadow-[4px_4px_0px_0px_#8a6075] hover:shadow-[2px_2px_0px_0px_#8a6075] hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+<div class="flex items-center gap-3">
+<!-- Apple Icon Placeholder SVG -->
+<svg fill="currentColor" viewbox="0 0 384 512" width="24"><path d="M318.7 268.7c-.2-36.7 16.4-64.4 50-84.8-18.8-26.9-47.2-41.7-84.7-44.6-35.5-2.8-74.3 20.7-88.5 20.7-15 0-49.4-19.7-76.4-19.7C63.3 141.2 4 184.8 4 273.5q0 39.3 14.4 81.2c12.8 36.7 59 126.7 107.2 125.2 25.2-.6 43-17.9 75.8-17.9 31.8 0 48.3 17.9 76.4 17.9 48.6-.7 90.4-82.5 102.6-119.3-65.2-30.7-61.7-90-61.7-91.9zm-56.6-164.2c27.3-32.4 24.8-61.9 24-72.5-24.1 1.4-52 16.4-67.9 34.9-17.5 19.8-27.8 44.3-25.6 71.9 26.1 2 52.3-11.4 69.5-34.3z"></path></svg>
+<span class="text-xl font-display font-bold uppercase tracking-wide">Pay with Apple</span>
+</div>
+</button>
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-16 px-5 bg-white text-black border-2 border-black hover:bg-gray-50 shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] transition-all">
+<div class="flex items-center gap-3">
+<!-- Google Icon Placeholder SVG -->
+<svg fill="currentColor" viewbox="0 0 488 512" width="24"><path d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"></path></svg>
+<span class="text-xl font-display font-bold uppercase tracking-wide">Pay with Google</span>
+</div>
+</button>
+</div>
+<!-- Footer Links -->
+<div class="mt-8 flex gap-6 text-sm font-bold text-[#181114]/60">
+<a class="hover:text-[#181114] underline decoration-2" href="#">Restore Purchases</a>
+<a class="hover:text-[#181114] underline decoration-2" href="#">Terms</a>
+<a class="hover:text-[#181114] underline decoration-2" href="#">Privacy</a>
+</div>
+</main>
+</div>
+</body></html>

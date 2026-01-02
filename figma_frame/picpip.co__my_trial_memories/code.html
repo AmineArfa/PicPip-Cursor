@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PicPip.co: My Trial Memories</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Spline+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#257bf4",
+              "midnight-ink": "#111418", // Using a very dark charcoal for slightly softer contrast than pure #000, or stick to pure black for the requested aesthetic. Let's stick to strict black for borders as requested.
+              "lemon-fizz": "#FFF475",
+              "background-light": "#FFF475", // Lemon Fizz as main background
+              "background-dark": "#101722",
+            },
+            fontFamily: {
+              "display": ["Spline Sans", "sans-serif"],
+              "body": ["Spline Sans", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "1rem", 
+              "lg": "1.5rem", 
+              "xl": "2rem", 
+              "2xl": "3rem", 
+              "full": "9999px"
+            },
+            boxShadow: {
+              "chunky": "4px 4px 0px 0px #000000",
+              "chunky-hover": "6px 6px 0px 0px #000000",
+              "chunky-active": "2px 2px 0px 0px #000000",
+            }
+          },
+        },
+      }
+    </script>
+<style>
+      /* Neo-Memphis Background Pattern */
+      .bg-pattern {
+        background-color: #FFF475;
+        background-image: radial-gradient(#000000 1.5px, transparent 1.5px);
+        background-size: 24px 24px;
+        opacity: 1;
+      }
+      
+      body {
+        font-family: 'Spline Sans', sans-serif;
+      }
+
+      /* Custom Border Utility for the chunky look */
+      .border-chunky {
+        border: 4px solid #000000;
+      }
+    </style>
+</head>
+<body class="bg-pattern min-h-screen flex flex-col font-display text-midnight-ink">
+<!-- Navigation Header -->
+<header class="sticky top-0 z-50 w-full bg-white border-b-4 border-black px-4 py-4 md:px-10">
+<div class="mx-auto flex max-w-[1200px] items-center justify-between">
+<!-- Logo Area -->
+<div class="flex items-center gap-3">
+<div class="flex h-12 w-12 items-center justify-center rounded-full bg-[#FF8B8B] border-chunky shadow-chunky">
+<span class="material-symbols-outlined text-white" style="font-size: 28px;">photo_camera</span>
+</div>
+<h1 class="hidden text-2xl font-bold tracking-tight text-black sm:block md:text-3xl">PicPip.co</h1>
+</div>
+<!-- Upgrade Button -->
+<button class="group relative flex cursor-pointer items-center justify-center overflow-hidden rounded-full bg-[#257bf4] px-6 py-3 text-white transition-all hover:-translate-y-0.5 hover:shadow-chunky-hover border-chunky shadow-chunky active:translate-y-0 active:shadow-chunky-active">
+<span class="mr-2 text-lg font-bold uppercase tracking-wide">Upgrade Plan</span>
+<span class="material-symbols-outlined" style="font-size: 24px;">rocket_launch</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-grow w-full px-4 py-8 md:px-10">
+<div class="mx-auto max-w-[1200px] flex flex-col gap-8">
+<!-- Hero / Mascot Section -->
+<section class="flex flex-col items-center justify-center gap-6 py-6 text-center md:flex-row md:text-left">
+<!-- Mascot Placeholder -->
+<div class="relative h-32 w-32 shrink-0 rounded-full bg-white border-chunky overflow-hidden flex items-center justify-center shadow-chunky" data-alt="Cartoon blue bird mascot named Pip smiling">
+<img alt="Pip the bird avatar" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAp3CTYAky5CYmI-Mp4BcPa9qJKdEquCS5aVCa1a45oX2O0NbFj2TF7YYvIg3IkzYwnMM8NHh9Tf-cn6UZ4Pxpi-uqjmKZ29XXWYn0ZY4TI2aoxCVLWp_yj0W2qjAxUIdiPqAHTLR2IAWSuV7UoGm1dRZdDet7BgFl_XW82hChp_hFlFxrqmYpyNghBQIDgVpXdfn4ctpP4RozIK64fFMJrn4oZEPB2hj4YGVIWKUuLbyOkAYrNun-bdPRCBzyljoAXSN98th3w5Ak"/>
+</div>
+<!-- Speech Bubble -->
+<div class="relative max-w-lg rounded-[2rem] bg-white p-6 border-chunky shadow-chunky">
+<!-- Triangle for speech bubble -->
+<div class="absolute -top-4 left-1/2 h-0 w-0 -translate-x-1/2 border-x-[15px] border-b-[20px] border-x-transparent border-b-black md:-left-4 md:top-1/2 md:-translate-y-1/2 md:border-y-[15px] md:border-r-[20px] md:border-y-transparent md:border-r-black md:border-l-0 md:rotate-0 rotate-0"></div>
+<div class="absolute -top-[13px] left-1/2 h-0 w-0 -translate-x-1/2 border-x-[12px] border-b-[16px] border-x-transparent border-b-white md:-left-[10px] md:top-1/2 md:-translate-y-1/2 md:border-y-[12px] md:border-r-[16px] md:border-y-transparent md:border-r-white md:border-l-0"></div>
+<h2 class="text-3xl font-bold leading-tight md:text-4xl">
+                    Look at your magic creations! 🐦✨
+                </h2>
+<p class="mt-2 text-xl font-medium text-gray-600">
+                    Tap any memory to share it with your family.
+                </p>
+</div>
+</section>
+<!-- Page Heading -->
+<div class="flex items-center justify-between rounded-2xl bg-[#FFD43B] p-4 border-chunky shadow-chunky">
+<h3 class="text-3xl font-bold text-black md:text-4xl">My Memories</h3>
+<div class="flex items-center gap-2 rounded-full bg-white px-4 py-2 border-2 border-black">
+<span class="material-symbols-outlined">filter_list</span>
+<span class="font-bold">Sort by Newest</span>
+</div>
+</div>
+<!-- Memories Grid -->
+<div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
+<!-- Memory Card 1 -->
+<article class="group relative flex flex-col overflow-hidden rounded-[2rem] bg-white border-chunky shadow-chunky transition-transform hover:-translate-y-1 hover:shadow-chunky-hover cursor-pointer">
+<div class="relative aspect-square w-full overflow-hidden bg-gray-100 border-b-4 border-black" data-alt="Animated photo of a garden party with gentle movement" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDbRlmM488v2UzoQDf7DYDqTBNi-V4tpKgQcyNZGVKzVusYXR0yJuyN3uNXGARPk-bxDRFeBEjROHhMopW4BXLQJGewXWbCNWcns8QXFt7pN2uWgNH_X6c1OLjYBrS7NztcaXVVuVcddqVW8tgVhLgKtQDHjYUB-8Z3HRq6R_qAQRMRfuKlnowtXyPuDxwUCOmICYs3DQTsN0t4Z5irCyJWJJ15xb4Ldu8VfeZe91MswsdRnYL7LN2S_Wcg6tKhJ4IEVaV8InqAwqI'); background-size: cover; background-position: center;">
+<!-- Watermark Badge -->
+<div class="absolute right-4 top-4 rounded-full bg-black/70 px-4 py-2 backdrop-blur-sm border-2 border-white">
+<p class="text-sm font-bold text-white uppercase tracking-wide">Free Trial</p>
+</div>
+<!-- Play Icon Overlay -->
+<div class="absolute inset-0 flex items-center justify-center bg-black/10 transition-colors group-hover:bg-black/20">
+<div class="flex h-20 w-20 items-center justify-center rounded-full bg-white/90 shadow-lg border-4 border-black transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-black" style="font-size: 48px;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3 p-6">
+<div class="flex items-center justify-between">
+<h4 class="text-2xl font-bold text-black">Garden Party</h4>
+<span class="rounded-full bg-[#E5F4FF] px-3 py-1 text-base font-bold text-[#0066CC] border-2 border-[#0066CC]">Oct 24</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 rounded-xl bg-[#257bf4] py-3 text-lg font-bold text-white shadow-[0_4px_0_0_#1a5bb5] transition-all hover:translate-y-1 hover:shadow-none active:translate-y-1 border-2 border-black">
+                            Download
+                        </button>
+<button aria-label="Share" class="rounded-xl bg-[#FF8B8B] p-3 text-white shadow-[0_4px_0_0_#d65f5f] transition-all hover:translate-y-1 hover:shadow-none active:translate-y-1 border-2 border-black">
+<span class="material-symbols-outlined" style="font-size: 28px;">share</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Memory Card 2 -->
+<article class="group relative flex flex-col overflow-hidden rounded-[2rem] bg-white border-chunky shadow-chunky transition-transform hover:-translate-y-1 hover:shadow-chunky-hover cursor-pointer">
+<div class="relative aspect-square w-full overflow-hidden bg-gray-100 border-b-4 border-black" data-alt="Grandchildren playing on a swing set animated" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAHNEjDxNln34LgeLT2XYVV7qppwIrSxPxXiN6aHfWbAi1O5PtcPi2QPA6ZZHsoz3A1f8pgEJjGv3uebPp8uDR6XfdytbBPTqgRm_m-Oz2WbSKV87lI99H6XB2GF8dxeStn20KPYPjsbirGAAAFtw1crankM8iXK3tij8YcdNKjGGn2QLSS0o7vHRcFO2EVMelv8WgvF8n2eH-kpQGi4XnB6QBAWL9yYEFJm33qPZyg0wynLJU8_oEUDQs7Hgmv0pQOUIz8Qpxz1i0'); background-size: cover; background-position: center;">
+<div class="absolute right-4 top-4 rounded-full bg-black/70 px-4 py-2 backdrop-blur-sm border-2 border-white">
+<p class="text-sm font-bold text-white uppercase tracking-wide">Free Trial</p>
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/10 transition-colors group-hover:bg-black/20">
+<div class="flex h-20 w-20 items-center justify-center rounded-full bg-white/90 shadow-lg border-4 border-black transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-black" style="font-size: 48px;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3 p-6">
+<div class="flex items-center justify-between">
+<h4 class="text-2xl font-bold text-black">Playground Fun</h4>
+<span class="rounded-full bg-[#E5F4FF] px-3 py-1 text-base font-bold text-[#0066CC] border-2 border-[#0066CC]">Oct 20</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 rounded-xl bg-[#257bf4] py-3 text-lg font-bold text-white shadow-[0_4px_0_0_#1a5bb5] transition-all hover:translate-y-1 hover:shadow-none active:translate-y-1 border-2 border-black">
+                            Download
+                        </button>
+<button aria-label="Share" class="rounded-xl bg-[#FF8B8B] p-3 text-white shadow-[0_4px_0_0_#d65f5f] transition-all hover:translate-y-1 hover:shadow-none active:translate-y-1 border-2 border-black">
+<span class="material-symbols-outlined" style="font-size: 28px;">share</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Memory Card 3 -->
+<article class="group relative flex flex-col overflow-hidden rounded-[2rem] bg-white border-chunky shadow-chunky transition-transform hover:-translate-y-1 hover:shadow-chunky-hover cursor-pointer">
+<div class="relative aspect-square w-full overflow-hidden bg-gray-100 border-b-4 border-black" data-alt="Vintage photo of a wedding animated" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAQeXpLDcjEXQixP-SFAONf_FsP2S5LBX_M3uv_Ht1ms3WubIjFUBiKC5sLTBKC7FvA3qi3e8CUhpgIbr8bCtKt0JU0Tsw2casXsYNQyy2St1T9Lxhp98LhHPdFR5d01wKVYTXwIpKuUfIroweIwiA_tP3GfuEvm0pxXGBX7JXM0tiEm6422ngpP0EAYhFujIDASWLxYukHbcCExkbjGB3v1hABI1eH0abY_8DpgkxXyH--sxY4Ix4xBKFiBYeTzeGxFVXGRGupFyw'); background-size: cover; background-position: center;">
+<div class="absolute right-4 top-4 rounded-full bg-black/70 px-4 py-2 backdrop-blur-sm border-2 border-white">
+<p class="text-sm font-bold text-white uppercase tracking-wide">Free Trial</p>
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/10 transition-colors group-hover:bg-black/20">
+<div class="flex h-20 w-20 items-center justify-center rounded-full bg-white/90 shadow-lg border-4 border-black transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-black" style="font-size: 48px;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3 p-6">
+<div class="flex items-center justify-between">
+<h4 class="text-2xl font-bold text-black">Wedding Day</h4>
+<span class="rounded-full bg-[#E5F4FF] px-3 py-1 text-base font-bold text-[#0066CC] border-2 border-[#0066CC]">Oct 15</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 rounded-xl bg-[#257bf4] py-3 text-lg font-bold text-white shadow-[0_4px_0_0_#1a5bb5] transition-all hover:translate-y-1 hover:shadow-none active:translate-y-1 border-2 border-black">
+                            Download
+                        </button>
+<button aria-label="Share" class="rounded-xl bg-[#FF8B8B] p-3 text-white shadow-[0_4px_0_0_#d65f5f] transition-all hover:translate-y-1 hover:shadow-none active:translate-y-1 border-2 border-black">
+<span class="material-symbols-outlined" style="font-size: 28px;">share</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Memory Card 4 -->
+<article class="group relative flex flex-col overflow-hidden rounded-[2rem] bg-white border-chunky shadow-chunky transition-transform hover:-translate-y-1 hover:shadow-chunky-hover cursor-pointer">
+<div class="relative aspect-square w-full overflow-hidden bg-gray-100 border-b-4 border-black" data-alt="Pet dog running in the park animated" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCJmVwKCOJNBsTGQCdlEpXesSNag95EVFQ5vGpU4tD4x25o1hP1dfSx7AAY3uA_DPQX_-8Vg3TzBB4l1oxi6M6s5M3zJDHp56eE6EWfMS5Oxsyn93VTmKoIhOZBmorvDX2yCrUskP6HOGdhvCXfK18q6Zfm4zeHm3WPxqOg26dCtWfCe1GjZmjDhf7O_iNPaUMccpyY42gWXLK7rewQVkYXotUBjD0BtSmuI9lZqeR96Io-DzLiwDQa8p8UYrirOdrQNjLKFrlnB0Y'); background-size: cover; background-position: center;">
+<div class="absolute right-4 top-4 rounded-full bg-black/70 px-4 py-2 backdrop-blur-sm border-2 border-white">
+<p class="text-sm font-bold text-white uppercase tracking-wide">Free Trial</p>
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/10 transition-colors group-hover:bg-black/20">
+<div class="flex h-20 w-20 items-center justify-center rounded-full bg-white/90 shadow-lg border-4 border-black transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-black" style="font-size: 48px;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3 p-6">
+<div class="flex items-center justify-between">
+<h4 class="text-2xl font-bold text-black">Buddy's Walk</h4>
+<span class="rounded-full bg-[#E5F4FF] px-3 py-1 text-base font-bold text-[#0066CC] border-2 border-[#0066CC]">Oct 12</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 rounded-xl bg-[#257bf4] py-3 text-lg font-bold text-white shadow-[0_4px_0_0_#1a5bb5] transition-all hover:translate-y-1 hover:shadow-none active:translate-y-1 border-2 border-black">
+                            Download
+                        </button>
+<button aria-label="Share" class="rounded-xl bg-[#FF8B8B] p-3 text-white shadow-[0_4px_0_0_#d65f5f] transition-all hover:translate-y-1 hover:shadow-none active:translate-y-1 border-2 border-black">
+<span class="material-symbols-outlined" style="font-size: 28px;">share</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Memory Card 5 -->
+<article class="group relative flex flex-col overflow-hidden rounded-[2rem] bg-white border-chunky shadow-chunky transition-transform hover:-translate-y-1 hover:shadow-chunky-hover cursor-pointer">
+<div class="relative aspect-square w-full overflow-hidden bg-gray-100 border-b-4 border-black" data-alt="Family picnic by the lake animated" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCa-1T8f9DrzguULL7SE1NW8xlDnzUFKGNRDMwdCQGExu75buDhr4lDo7ZFpSL77UYCKWq3-bYRxHluB1kSOD6E7z3dghMpVqWDcDI6ToSKW32K52IHK1PHpCfTerrux6rltEMciIGlerQzKNBvWwMIA5DvFP6UQ6RK7o9slA0N2o4Dqif7Sbb4bQt0pPZ5FeO0h7nUdPjqC5qqcWVqFMEmznLinFHMGihGhS1LgqFANVp_mWFwJFltiQB9WYm3xIz4T31WXUCJouA'); background-size: cover; background-position: center;">
+<div class="absolute right-4 top-4 rounded-full bg-black/70 px-4 py-2 backdrop-blur-sm border-2 border-white">
+<p class="text-sm font-bold text-white uppercase tracking-wide">Free Trial</p>
+</div>
+<div class="absolute inset-0 flex items-center justify-center bg-black/10 transition-colors group-hover:bg-black/20">
+<div class="flex h-20 w-20 items-center justify-center rounded-full bg-white/90 shadow-lg border-4 border-black transition-transform group-hover:scale-110">
+<span class="material-symbols-outlined text-black" style="font-size: 48px;">play_arrow</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-3 p-6">
+<div class="flex items-center justify-between">
+<h4 class="text-2xl font-bold text-black">Lake Picnic</h4>
+<span class="rounded-full bg-[#E5F4FF] px-3 py-1 text-base font-bold text-[#0066CC] border-2 border-[#0066CC]">Oct 05</span>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 rounded-xl bg-[#257bf4] py-3 text-lg font-bold text-white shadow-[0_4px_0_0_#1a5bb5] transition-all hover:translate-y-1 hover:shadow-none active:translate-y-1 border-2 border-black">
+                            Download
+                        </button>
+<button aria-label="Share" class="rounded-xl bg-[#FF8B8B] p-3 text-white shadow-[0_4px_0_0_#d65f5f] transition-all hover:translate-y-1 hover:shadow-none active:translate-y-1 border-2 border-black">
+<span class="material-symbols-outlined" style="font-size: 28px;">share</span>
+</button>
+</div>
+</div>
+</article>
+</div>
+</div>
+</main>
+<!-- Floating Action Button for Mobile/Desktop Primary Action -->
+<div class="fixed bottom-6 right-6 z-50 md:bottom-10 md:right-10">
+<button class="group flex h-16 cursor-pointer items-center justify-center gap-3 rounded-full bg-[#257bf4] pl-6 pr-8 text-white transition-all hover:-translate-y-1 hover:shadow-chunky-hover border-chunky shadow-chunky active:translate-y-0 active:shadow-chunky-active">
+<div class="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+<span class="material-symbols-outlined" style="font-size: 28px;">add</span>
+</div>
+<span class="text-lg font-bold tracking-wide">Create New Memory</span>
+</button>
+</div>
+</body></html>

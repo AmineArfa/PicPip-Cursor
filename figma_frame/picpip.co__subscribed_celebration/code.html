@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>PicPip.co: It's Yours!</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&amp;family=Spline+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa38c3", // Bubblegum Pink
+                        "action-green": "#BFFF00", // Slime Green
+                        "action-blue": "#2DD4BF", // Electric Blue-ish Teal (adjusted for better text contrast or keeping it vibrant)
+                        "background-light": "#FFFACD", // Lemon Fizz
+                        "background-dark": "#230f1d", // Fallback for dark mode if needed, though request specifies Lemon Fizz
+                        "ink": "#181116", // Midnight Ink
+                    },
+                    fontFamily: {
+                        "display": ["Fredoka One", "cursive"],
+                        "body": ["Spline Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "1rem", 
+                        "lg": "2rem", 
+                        "xl": "3rem", 
+                        "full": "9999px"
+                    },
+                    boxShadow: {
+                        "neo": "6px 6px 0px 0px #181116",
+                        "neo-sm": "3px 3px 0px 0px #181116",
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        /* Confetti Animation CSS */
+        @keyframes fall {
+            0% { transform: translateY(-10vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            top: -10px;
+            z-index: 0;
+            pointer-events: none;
+        }
+        .confetti:nth-child(2n) { background-color: #fa38c3; }
+        .confetti:nth-child(2n+1) { background-color: #BFFF00; }
+        .confetti:nth-child(3n) { background-color: #00FFFF; }
+        .confetti:nth-child(4n) { background-color: #FFA500; }
+        
+        /* Generate a few confetti pieces with different timings */
+        .c-1 { left: 10%; animation: fall 4s linear infinite; animation-delay: 0s; }
+        .c-2 { left: 20%; animation: fall 3.5s linear infinite; animation-delay: 1s; }
+        .c-3 { left: 30%; animation: fall 5s linear infinite; animation-delay: 2s; }
+        .c-4 { left: 50%; animation: fall 4.2s linear infinite; animation-delay: 0.5s; }
+        .c-5 { left: 60%; animation: fall 3s linear infinite; animation-delay: 1.5s; }
+        .c-6 { left: 80%; animation: fall 4.5s linear infinite; animation-delay: 0.8s; }
+        .c-7 { left: 90%; animation: fall 3.8s linear infinite; animation-delay: 2.2s; }
+
+        /* Custom Pattern Background */
+        .bg-pattern {
+            background-image: radial-gradient(#fa38c3 1.5px, transparent 1.5px), radial-gradient(#181116 1.5px, transparent 1.5px);
+            background-size: 30px 30px;
+            background-position: 0 0, 15px 15px;
+            opacity: 0.15;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-body text-ink overflow-x-hidden selection:bg-primary selection:text-white">
+<!-- Confetti Layer -->
+<div aria-hidden="true" class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+<div class="bg-pattern absolute inset-0 w-full h-full pointer-events-none"></div>
+<div class="confetti c-1"></div>
+<div class="confetti c-2"></div>
+<div class="confetti c-3"></div>
+<div class="confetti c-4"></div>
+<div class="confetti c-5"></div>
+<div class="confetti c-6"></div>
+<div class="confetti c-7"></div>
+</div>
+<!-- Main Container -->
+<div class="relative z-10 flex flex-col min-h-screen w-full">
+<!-- Top Nav -->
+<header class="flex items-center justify-between px-6 py-4 md:px-12 md:py-6 w-full max-w-[1200px] mx-auto">
+<div class="flex items-center gap-3 text-ink">
+<div class="size-8 bg-primary rounded-full border-2 border-ink flex items-center justify-center shadow-neo-sm">
+<span class="material-symbols-outlined text-white text-lg font-bold">photo_camera</span>
+</div>
+<h2 class="text-ink text-2xl font-display font-normal tracking-wide">PicPip.co</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden sm:flex items-center gap-2 bg-white px-4 py-2 rounded-full border-2 border-ink shadow-neo-sm">
+<span class="material-symbols-outlined text-primary">workspace_premium</span>
+<span class="font-bold text-sm">Premium Member</span>
+</div>
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-12 border-2 border-ink shadow-neo-sm" data-alt="User profile picture of an elderly woman smiling" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBZGb7JNqA4UMRn5VyIX-f5e_H5iJRuj6RAF4PfVn5ERxHqIAaGpCZ9ajiRjT_pvLADZBeTkc7YmVzflu9mH8ZwgYDDNnhxaY0sMzqqjL1bi2oMP6HenfGjUGHlJYnWfBHBW-ujWb1O0ToIN4CIkwtktBWyaCwfuewllSVVg01No_MxSCuq38OFCkrO0QYaHwSXUZfHUeDiIBPAF-vwTKsi4jS7dllznCk6shcNED0JJfQc5b3OIuU3JWSl0oGFHlH8l8q8mYOnsz8");'>
+</div>
+</div>
+</header>
+<!-- Content Area -->
+<main class="flex-1 flex flex-col items-center justify-center px-4 py-8 md:px-8 w-full max-w-[960px] mx-auto gap-8">
+<!-- Headline & Mascot Section -->
+<div class="text-center relative w-full flex flex-col items-center">
+<!-- Mascot (Pip the Bird) -->
+<div class="absolute -top-24 md:-top-28 -right-4 md:right-10 w-32 h-32 md:w-40 md:h-40 animate-bounce" style="animation-duration: 2s;">
+<!-- Simulating a mascot with a styled div since I can't generate images -->
+<div class="w-full h-full bg-contain bg-no-repeat bg-center drop-shadow-lg transform rotate-12" data-alt="Pip the blue bird mascot wearing a party hat and throwing confetti" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCgFWqXozt3mqPqOWE5Ktf14N9gIqNGeeT45qPyK8vNY1Iuw-kU00jKk-kXYGNWWKH3eAItuIyJWpd4bxg-5oeUTsxnPlLfM-br51iCKLQjBwviW15qV4qSjj9gHqXRtzi7exgaZX3f2XHBRHIemFhG_tIrEYWUTp_2HZlEWMlLJCIwpMdqfxB9Z87ZZqYjG_O7wuK3eto7qeNtufRSZoScmJ9HFn8ZsXvECZZFgdldJ9UZACr30ybIlIhYJI4sp5_sby-orJHwlvQ');">
+</div>
+</div>
+<h1 class="text-ink text-5xl md:text-7xl font-display leading-tight tracking-tight drop-shadow-sm mb-2">
+                    It's Yours!
+                </h1>
+<p class="text-ink/80 text-xl md:text-2xl font-medium max-w-lg mx-auto">
+                    Your photo is now moving magic. Look at it go!
+                </p>
+</div>
+<!-- Preview Card -->
+<div class="w-full max-w-[600px] bg-white p-3 rounded-[2.5rem] border-4 border-ink shadow-neo transform hover:scale-[1.01] transition-transform duration-300">
+<div class="relative w-full aspect-[4/3] md:aspect-video rounded-[2rem] overflow-hidden border-2 border-ink/10 bg-gray-100">
+<!-- The Animated Result -->
+<div class="w-full h-full bg-center bg-cover" data-alt="Animated photo of a grandchild blowing out birthday candles" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCVP0_7ZTEawhugy5k9IIlp57Oe4osZyFBLC_jLnHb605WGmu1GSO3Ti-BND15okxqzzsl__adxjAqmJwi_M51FlUPuFlfC8754TZRv2G9kY239KO9XHES0QKtHCJEhD3vSDSjIaK00DwL8GR5JniHGn5cL9u0j0F5IGOR6CGOz9fFVSKP0Mls5Evk6wtEoYAtS8Y5EqflyIvmtf9IHJ27-UD0NlGtDTFugKj8dD3cUhF_lvrpj7YkHn5S3dY61jjfYVVnT7yn8MAw");'>
+<!-- Play overlay for static preview -->
+<div class="absolute inset-0 flex items-center justify-center bg-black/10">
+<div class="w-16 h-16 bg-white/90 rounded-full flex items-center justify-center shadow-lg backdrop-blur-sm animate-pulse">
+<span class="material-symbols-outlined text-primary text-4xl ml-1">play_arrow</span>
+</div>
+</div>
+</div>
+<!-- Decorative Badge -->
+<div class="absolute top-4 left-4 bg-action-green text-ink px-4 py-1 rounded-full border-2 border-ink shadow-neo-sm font-bold text-sm flex items-center gap-1 font-display uppercase tracking-wider">
+<span class="material-symbols-outlined text-lg">auto_awesome</span>
+                         animated
+                    </div>
+</div>
+</div>
+<!-- Action Buttons Area -->
+<div class="flex flex-col w-full max-w-[500px] gap-5 mt-4">
+<!-- Primary Action: Download -->
+<button class="group relative w-full flex items-center justify-center bg-primary hover:bg-[#e032ae] text-white text-2xl md:text-3xl font-display tracking-wide uppercase py-5 px-8 rounded-full border-4 border-ink shadow-neo active:translate-x-1 active:translate-y-1 active:shadow-none transition-all duration-150">
+<span class="material-symbols-outlined mr-3 text-3xl md:text-4xl group-hover:animate-bounce">download</span>
+<span>Download</span>
+</button>
+<!-- Secondary Action: Share -->
+<button class="group relative w-full flex items-center justify-center bg-action-green hover:bg-[#aadd00] text-ink text-2xl md:text-3xl font-display tracking-wide uppercase py-5 px-8 rounded-full border-4 border-ink shadow-neo active:translate-x-1 active:translate-y-1 active:shadow-none transition-all duration-150">
+<span class="material-symbols-outlined mr-3 text-3xl md:text-4xl">share</span>
+<span>Share</span>
+</button>
+<!-- Tertiary Action: Loop -->
+<button class="group relative w-full flex items-center justify-center bg-[#00FFFF] hover:bg-[#00e0e0] text-ink text-xl md:text-2xl font-display tracking-wide uppercase py-4 px-8 rounded-full border-4 border-ink shadow-neo active:translate-x-1 active:translate-y-1 active:shadow-none transition-all duration-150 mt-2">
+<span class="material-symbols-outlined mr-2 text-2xl md:text-3xl animate-spin" style="animation-duration: 3s;">autorenew</span>
+<span>Animate Another One!</span>
+</button>
+</div>
+</main>
+<!-- Footer / Trust Signals -->
+<footer class="w-full py-8 text-center text-ink/60 text-sm font-medium">
+<p>© 2024 PicPip.co • Made with ❤️ for Grandma &amp; Grandpa</p>
+</footer>
+</div>
+<!-- Audio Element (Simulated "Ta-da!") -->
+<!-- Note: Browsers block autoplay often, usually requires interaction first, but placing tag as requested context -->
+<audio id="success-sound" preload="auto" src="https://codeskulptor-demos.commondatastorage.googleapis.com/pang/paza-moduless.mp3"></audio>
+</body></html>
