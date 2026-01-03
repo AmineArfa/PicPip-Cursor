@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServiceRoleClient, createServerSupabaseClient } from '@/lib/supabase/server';
-import { sendNewTicketNotification } from '@/lib/email';
+import { sendNewTicketNotification, sendTicketConfirmation } from '@/lib/email';
 
 export async function POST(request: NextRequest) {
   try {
@@ -147,7 +147,18 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Send email notification to admin (non-blocking)
+    // Send email notifications (non-blocking)
+    // Send confirmation to user
+    sendTicketConfirmation({
+      ticketNumber,
+      userEmail: email.trim(),
+      userMessage: trimmedMessage,
+    }).catch((error: any) => {
+      console.error('Failed to send ticket confirmation email:', error);
+      // Don't fail the request if email fails
+    });
+
+    // Send notification to admin
     sendNewTicketNotification({
       ticketNumber,
       userEmail: email.trim(),
@@ -155,7 +166,7 @@ export async function POST(request: NextRequest) {
         ? trimmedMessage.substring(0, 200) + '...' 
         : trimmedMessage,
     }).catch((error) => {
-      console.error('Failed to send email notification:', error);
+      console.error('Failed to send admin email notification:', error);
       // Don't fail the request if email fails
     });
 

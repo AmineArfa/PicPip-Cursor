@@ -1,6 +1,6 @@
 'use client';
 
-import { forwardRef, type ReactNode } from 'react';
+import { forwardRef, type ReactNode, type MouseEventHandler } from 'react';
 import { motion, type HTMLMotionProps } from 'framer-motion';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +16,7 @@ interface NeoCardProps {
   };
   children: ReactNode;
   className?: string;
+  onClick?: MouseEventHandler<HTMLDivElement>;
 }
 
 const variantStyles: Record<NeoCardVariant, string> = {
@@ -26,7 +27,7 @@ const variantStyles: Record<NeoCardVariant, string> = {
 };
 
 export const NeoCard = forwardRef<HTMLDivElement, NeoCardProps>(
-  ({ variant = 'default', hover = true, badge, children, className }, ref) => {
+  ({ variant = 'default', hover = true, badge, children, className, onClick }, ref) => {
     const baseClassName = cn(
       'relative flex flex-col rounded-3xl border-4 border-[#181016] p-6',
       'shadow-[6px_6px_0px_0px_#181016]',
@@ -64,6 +65,7 @@ export const NeoCard = forwardRef<HTMLDivElement, NeoCardProps>(
           className={baseClassName}
           whileHover={{ y: -8, boxShadow: '10px 10px 0px 0px #181016' }}
           transition={{ type: 'spring', stiffness: 300 }}
+          onClick={onClick}
         >
           {content}
         </motion.div>
@@ -71,7 +73,7 @@ export const NeoCard = forwardRef<HTMLDivElement, NeoCardProps>(
     }
 
     return (
-      <div ref={ref} className={baseClassName}>
+      <div ref={ref} className={baseClassName} onClick={onClick}>
         {content}
       </div>
     );
