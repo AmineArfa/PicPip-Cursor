@@ -198,7 +198,7 @@ export default function PricingPage() {
                 >
                   <NeoCard
                     variant={plan.variant}
-                    badge={plan.badge}
+                    badge={'badge' in plan ? plan.badge : undefined}
                     hover={!isDisabled}
                     className={isDisabled ? 'opacity-60' : ''}
                   >
