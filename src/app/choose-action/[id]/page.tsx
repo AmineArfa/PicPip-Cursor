@@ -47,7 +47,7 @@ export default function ChooseActionPage() {
         setIsAuthenticated(true);
         const { data: profile } = await supabase
           .from('profiles')
-          .select('subscription_status, credits')
+          .select('*')
           .eq('id', user.id)
           .single();
 
