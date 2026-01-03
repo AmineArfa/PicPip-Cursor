@@ -8,6 +8,7 @@ import { Header } from '@/components/header';
 import { DotPattern, NeoButton, NeoCard } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
 import { useEffect } from 'react';
+import type { Profile } from '@/lib/supabase/types';
 
 type PlanType = 'single' | 'bundle' | 'subscription';
 
@@ -84,14 +85,15 @@ export default function PricingPage() {
         // Check subscription status and credits
         const { data: profile } = await supabase
           .from('profiles')
-          .select('subscription_status, credits')
+          .select('*')
           .eq('id', user.id)
           .single();
         
-        if (profile?.subscription_status === 'active' || profile?.subscription_status === 'trial') {
+        const typedProfile = profile as Profile | null;
+        if (typedProfile?.subscription_status === 'active' || typedProfile?.subscription_status === 'trial') {
           setIsSubscribed(true);
         }
-        setCredits(profile?.credits || 0);
+        setCredits(typedProfile?.credits || 0);
       }
       setIsLoading(false);
     };

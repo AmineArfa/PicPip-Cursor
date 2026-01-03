@@ -8,6 +8,7 @@ import { Header } from '@/components/header';
 import { DotPattern } from '@/components/ui';
 import { usePicPipStore } from '@/lib/store';
 import { createClient } from '@/lib/supabase/client';
+import type { Profile } from '@/lib/supabase/types';
 import Image from 'next/image';
 
 const PROCESSING_MESSAGES = [
@@ -53,14 +54,15 @@ export default function ProcessingPage() {
         // Check subscription status and credits
         const { data: profile } = await supabase
           .from('profiles')
-          .select('subscription_status, credits')
+          .select('*')
           .eq('id', user.id)
           .single();
         
-        if (profile?.subscription_status === 'active' || profile?.subscription_status === 'trial') {
+        const typedProfile = profile as Profile | null;
+        if (typedProfile?.subscription_status === 'active' || typedProfile?.subscription_status === 'trial') {
           setIsSubscribed(true);
         }
-        setCredits(profile?.credits || 0);
+        setCredits(typedProfile?.credits || 0);
       }
     };
     
