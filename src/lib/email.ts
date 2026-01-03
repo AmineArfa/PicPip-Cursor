@@ -1,6 +1,12 @@
 import { Resend } from 'resend';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+function getResendClient() {
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    return null;
+  }
+  return new Resend(apiKey);
+}
 
 const FROM_EMAIL = process.env.FROM_EMAIL || 'Pip <pip@picpip.co>';
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'admin@picpip.co';
@@ -29,6 +35,11 @@ export async function sendNewTicketNotification({
   }
 
   try {
+    const resend = getResendClient();
+    if (!resend) {
+      return { success: false, error: 'Email service not configured' };
+    }
+
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: ADMIN_EMAIL,
@@ -93,6 +104,11 @@ export async function sendAdminReply({
   }
 
   try {
+    const resend = getResendClient();
+    if (!resend) {
+      return { success: false, error: 'Email service not configured' };
+    }
+
     const { data, error } = await resend.emails.send({
       from: FROM_EMAIL,
       to: userEmail,

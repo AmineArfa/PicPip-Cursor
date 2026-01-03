@@ -40,41 +40,64 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user ID if authenticated (optional)
+    // Use service role client for database operations
+    const serviceClient = await createServiceRoleClient();
+
+    // Get user ID if authenticated and has a profile (optional)
     let userId: string | null = null;
     try {
       const supabase = await createServerSupabaseClient();
       const { data: { user } } = await supabase.auth.getUser();
-      userId = user?.id || null;
+      if (user?.id) {
+        // Check if user has a profile before setting user_id (foreign key constraint)
+        const { data: profile } = await serviceClient
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single();
+        if (profile) {
+          userId = user.id;
+        }
+      }
     } catch {
-      // User not authenticated, that's fine - tickets can be from guests
+      // User not authenticated or no profile, that's fine - tickets can be from guests
+      userId = null;
     }
 
-    // Use service role client for database operations
-    const serviceClient = await createServiceRoleClient();
-
-    // Generate ticket number using database function
-    const { data: ticketNumberResult, error: ticketNumberError } = await serviceClient
-      .rpc('generate_ticket_number');
-
-    if (ticketNumberError) {
-      console.error('Error generating ticket number:', ticketNumberError);
-      return NextResponse.json(
-        { error: 'Failed to create ticket' },
-        { status: 500 }
-      );
-    }
-
-    // RPC functions return the value directly in data
-    const ticketNumber = ticketNumberResult as string;
+    // Generate ticket number (PP-YYYY-NNNNNN format)
+    const currentYear = new Date().getFullYear().toString();
+    const yearPrefix = `PP-${currentYear}-`;
     
-    if (!ticketNumber) {
-      console.error('Ticket number generation returned empty result');
+    // Get the highest ticket number for this year
+    // Query all tickets and filter for this year's prefix (simpler than pattern matching)
+    const { data: allTickets, error: queryError } = await serviceClient
+      .from('support_tickets')
+      .select('ticket_number')
+      .order('ticket_number', { ascending: false });
+
+    if (queryError) {
+      console.error('Error querying tickets:', queryError);
       return NextResponse.json(
-        { error: 'Failed to create ticket' },
+        { error: `Database error: ${queryError.message || 'Failed to query tickets'}` },
         { status: 500 }
       );
     }
+
+    // Filter tickets for this year and get the highest sequence
+    const yearTickets = (allTickets || [])
+      .filter(t => t.ticket_number.startsWith(yearPrefix))
+      .sort((a, b) => b.ticket_number.localeCompare(a.ticket_number));
+
+    // Calculate next sequence number
+    let nextSequence = 1;
+    if (yearTickets.length > 0) {
+      const lastTicketNumber = yearTickets[0].ticket_number;
+      const lastSequence = parseInt(lastTicketNumber.split('-')[2] || '0', 10);
+      nextSequence = lastSequence + 1;
+    }
+
+    // Format: PP-YYYY-NNNNNN (6 digits)
+    const ticketNumber = `${yearPrefix}${nextSequence.toString().padStart(6, '0')}`;
 
     // Generate subject from first line of message (optional)
     const firstLine = trimmedMessage.split('\n')[0].trim();
@@ -99,7 +122,7 @@ export async function POST(request: NextRequest) {
     if (ticketError || !ticket) {
       console.error('Error creating ticket:', ticketError);
       return NextResponse.json(
-        { error: 'Failed to create ticket' },
+        { error: ticketError ? `Failed to create ticket: ${ticketError.message}` : 'Failed to create ticket: No ticket returned' },
         { status: 500 }
       );
     }
@@ -119,7 +142,7 @@ export async function POST(request: NextRequest) {
       // Try to clean up the ticket if message insertion fails
       await serviceClient.from('support_tickets').delete().eq('id', ticket.id);
       return NextResponse.json(
-        { error: 'Failed to create ticket' },
+        { error: `Failed to create message: ${messageError.message}` },
         { status: 500 }
       );
     }
