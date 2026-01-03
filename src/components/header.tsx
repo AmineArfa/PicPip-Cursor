@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { User, Sparkles, HelpCircle, Menu, X, Zap, Infinity } from 'lucide-react';
+import { User, Sparkles, HelpCircle, Menu, X, Zap, Infinity as InfinityIcon } from 'lucide-react';
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -50,7 +50,7 @@ function CreditBar({ credits, isSubscribed }: { credits: number; isSubscribed: b
           <motion.div
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
             animate={{ x: ["-100%", "100%"] }}
-            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
           />
         )}
       </div>
@@ -59,7 +59,7 @@ function CreditBar({ credits, isSubscribed }: { credits: number; isSubscribed: b
       <span className="font-bold text-sm text-[#181016] flex items-center gap-1 min-w-[2.5rem]">
         {isSubscribed ? (
           <>
-            <Infinity className="w-4 h-4" />
+            <InfinityIcon className="w-4 h-4" />
           </>
         ) : (
           <span>{credits}</span>
