@@ -54,7 +54,11 @@ export function AdminSupportContent() {
       if (!response.ok) throw new Error('Failed to fetch ticket');
 
       const data = await response.json();
-      setSelectedTicket(data);
+      // API returns { ticket, messages }, but we need to merge them
+      setSelectedTicket({
+        ...data.ticket,
+        messages: data.messages || [],
+      });
     } catch (error) {
       console.error('Error fetching ticket:', error);
     }
@@ -181,12 +185,12 @@ export function AdminSupportContent() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span
-                      className={`px-3 py-1 rounded-full border-2 font-bold text-sm ${getStatusColor(selectedTicket.status)}`}
+                      className={`px-3 py-1 rounded-full border-2 font-bold text-sm ${getStatusColor(selectedTicket.status || 'open')}`}
                     >
-                      {selectedTicket.status.replace('_', ' ').toUpperCase()}
+                      {(selectedTicket.status || 'open').replace('_', ' ').toUpperCase()}
                     </span>
                     <select
-                      value={selectedTicket.status}
+                      value={selectedTicket.status || 'open'}
                       onChange={(e) => handleStatusUpdate(selectedTicket.id, e.target.value)}
                       disabled={isUpdatingStatus}
                       className="px-3 py-2 border-4 border-[#181016] rounded-xl font-bold bg-white focus:outline-none focus:border-[#ff61d2]"
