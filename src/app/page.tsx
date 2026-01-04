@@ -29,7 +29,8 @@ function HomeContent() {
     guestSessionId, 
     setGuestSession, 
     setProcessingStatus,
-    setAnimation 
+    setAnimation,
+    setUserState
   } = usePicPipStore();
 
   const purchaseParam = searchParams.get('purchase');
@@ -80,10 +81,16 @@ function HomeContent() {
             .single();
           
           const typedProfile = profile as Profile | null;
-          if (typedProfile?.subscription_status === 'active' || typedProfile?.subscription_status === 'trial') {
+          const isUserSubscribed = typedProfile?.subscription_status === 'active' || typedProfile?.subscription_status === 'trial';
+          const userCredits = typedProfile?.credits || 0;
+          
+          if (isUserSubscribed) {
             setIsSubscribed(true);
           }
-          setCredits(typedProfile?.credits || 0);
+          setCredits(userCredits);
+          
+          // Update global store for header and other components
+          setUserState(true, isUserSubscribed, userCredits);
         };
 
         await fetchProfile();

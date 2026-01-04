@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { User, Sparkles, HelpCircle, Menu, X, Zap, Infinity as InfinityIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { usePicPipStore } from '@/lib/store';
 
 interface HeaderProps {
   variant?: 'default' | 'minimal';
@@ -17,10 +18,18 @@ interface HeaderProps {
 
 // Credit bar component that shows credits with a visual bar
 function CreditBar({ credits, isSubscribed }: { credits: number; isSubscribed: boolean }) {
+  // Also read from store for real-time updates
+  const storeCredits = usePicPipStore((state) => state.credits);
+  const storeIsSubscribed = usePicPipStore((state) => state.isSubscribed);
+  
+  // Use store value if it's been set (non-zero or subscribed), otherwise use props
+  const displayCredits = storeCredits > 0 || storeIsSubscribed ? storeCredits : credits;
+  const displaySubscribed = storeIsSubscribed || isSubscribed;
+  
   // For non-subscribers, show credits out of 10 (max bundle size)
   // For subscribers, show full bar with infinity icon
   const maxCredits = 10;
-  const percentage = isSubscribed ? 100 : Math.min((credits / maxCredits) * 100, 100);
+  const percentage = displaySubscribed ? 100 : Math.min((displayCredits / maxCredits) * 100, 100);
   
   return (
     <Link
@@ -34,9 +43,9 @@ function CreditBar({ credits, isSubscribed }: { credits: number; isSubscribed: b
         <motion.div
           className={cn(
             "absolute inset-y-0 left-0 rounded-full",
-            isSubscribed 
+            displaySubscribed 
               ? "bg-gradient-to-r from-[#ff61d2] via-[#a3ff00] to-[#00d4ff]"
-              : credits > 0 
+              : displayCredits > 0 
                 ? "bg-gradient-to-r from-[#ff61d2] to-[#ff8de0]"
                 : "bg-gray-300"
           )}
@@ -46,7 +55,7 @@ function CreditBar({ credits, isSubscribed }: { credits: number; isSubscribed: b
         />
         
         {/* Shimmer effect for unlimited */}
-        {isSubscribed && (
+        {displaySubscribed && (
           <motion.div
             className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent"
             animate={{ x: ["-100%", "100%"] }}
@@ -57,12 +66,12 @@ function CreditBar({ credits, isSubscribed }: { credits: number; isSubscribed: b
       
       {/* Credit text */}
       <span className="font-bold text-sm text-[#181016] flex items-center gap-1 min-w-[2.5rem]">
-        {isSubscribed ? (
+        {displaySubscribed ? (
           <>
             <InfinityIcon className="w-4 h-4" />
           </>
         ) : (
-          <span>{credits}</span>
+          <span>{displayCredits}</span>
         )}
       </span>
     </Link>

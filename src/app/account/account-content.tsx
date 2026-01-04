@@ -17,6 +17,7 @@ import {
 import { Header } from '@/components/header';
 import { DotPattern, NeoButton, NeoCard } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
+import { usePicPipStore } from '@/lib/store';
 import type { Profile } from '@/lib/supabase/types';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -35,9 +36,17 @@ export function AccountContent({ user, profile: initialProfile, stats }: Account
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [profile, setProfile] = useState(initialProfile);
+  const { setUserState, setCredits } = usePicPipStore();
   
   const isSubscribed = profile?.subscription_status === 'active' || 
                        profile?.subscription_status === 'trial';
+
+  // Sync profile to global store on mount and updates
+  useEffect(() => {
+    if (profile) {
+      setUserState(true, isSubscribed, profile.credits || 0);
+    }
+  }, [profile, isSubscribed, setUserState]);
 
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
@@ -89,6 +98,9 @@ export function AccountContent({ user, profile: initialProfile, stats }: Account
         } else if (newProfile) {
           console.log('Refreshed profile:', newProfile);
           setProfile(newProfile as Profile);
+          // Also update global store
+          const refreshedCredits = (newProfile as Profile).credits || 0;
+          setCredits(refreshedCredits);
         }
         
         setShowSuccess(true);

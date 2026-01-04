@@ -28,6 +28,8 @@ interface PicPipState {
   setProcessingStatus: (status: ProcessingStatus, message?: string) => void;
   setProcessingProgress: (progress: number) => void;
   setUserState: (isAuthenticated: boolean, isSubscribed: boolean, credits: number) => void;
+  setCredits: (credits: number) => void;
+  decrementCredits: () => void;
   reset: () => void;
 }
 
@@ -69,6 +71,12 @@ export const usePicPipStore = create<PicPipState>()(
 
       setUserState: (isAuthenticated: boolean, isSubscribed: boolean, credits: number) =>
         set({ isAuthenticated, isSubscribed, credits }),
+
+      setCredits: (credits: number) =>
+        set({ credits }),
+
+      decrementCredits: () =>
+        set((state) => ({ credits: Math.max(0, state.credits - 1) })),
 
       reset: () => set(initialState),
     }),

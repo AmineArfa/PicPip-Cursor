@@ -66,7 +66,7 @@ function CheckoutContent() {
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null); // Store auth email as fallback
   
-  const { guestSessionId } = usePicPipStore();
+  const { guestSessionId, setCredits, setUserState } = usePicPipStore();
 
   // Check auth status on mount
   useEffect(() => {
@@ -87,6 +87,10 @@ function CheckoutContent() {
         
         if (profileData) {
           setProfile(profileData);
+          // Update global store with user state
+          const isSubscribed = profileData.subscription_status === 'active' || 
+                               profileData.subscription_status === 'trial';
+          setUserState(true, isSubscribed, profileData.credits || 0);
         }
         setMode('logged_in');
       } else {
@@ -124,6 +128,11 @@ function CheckoutContent() {
 
       if (!response.ok) {
         throw new Error(data.error || 'Failed to use credit');
+      }
+
+      // Update the global store with new credit count
+      if (typeof data.credits === 'number') {
+        setCredits(data.credits);
       }
 
       // Success! Redirect to celebration page
