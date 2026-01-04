@@ -41,8 +41,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get base URL
-    const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+    // Get base URL - prioritize the request origin for correct redirects
+    const origin = request.nextUrl.origin;
+    const baseUrl = origin || process.env.NEXT_PUBLIC_APP_URL || 'https://picpip.co';
 
     // Determine success and cancel URLs based on product type
     let successUrl: string;
@@ -59,30 +60,44 @@ export async function POST(request: NextRequest) {
     }
 
     // Create Stripe checkout session
-    const session = await createCheckoutSession({
-      productType: productType as ProductType,
-      customerEmail,
-      animationId: animationId || 'pricing-page',
-      guestSessionId: guestSessionId || '',
-      successUrl,
-      cancelUrl,
-    });
-
-    // Also trigger magic link auth (non-blocking)
-    if (guestSessionId) {
-      triggerMagicLink(customerEmail, guestSessionId, animationId).catch((err) => {
-        console.error('Magic link error:', err);
+    try {
+      const session = await createCheckoutSession({
+        productType: productType as ProductType,
+        customerEmail,
+        animationId: animationId || 'pricing-page',
+        guestSessionId: guestSessionId || '',
+        successUrl,
+        cancelUrl,
       });
-    }
 
-    return NextResponse.json({
-      sessionId: session.id,
-      url: session.url,
-    });
-  } catch (error) {
+      // Also trigger magic link auth (non-blocking)
+      if (guestSessionId) {
+        triggerMagicLink(customerEmail, guestSessionId, animationId, baseUrl).catch((err) => {
+          console.error('Magic link error:', err);
+        });
+      }
+
+      return NextResponse.json({
+        sessionId: session.id,
+        url: session.url,
+      });
+    } catch (stripeError: any) {
+      console.error('Stripe session creation error:', stripeError);
+      
+      // Return more specific error message if it's a configuration issue
+      if (stripeError.message?.includes('not configured')) {
+        return NextResponse.json(
+          { error: stripeError.message },
+          { status: 500 }
+        );
+      }
+      
+      throw stripeError; // Re-throw for the general catch block
+    }
+  } catch (error: any) {
     console.error('Checkout session creation error:', error);
     return NextResponse.json(
-      { error: 'Failed to create checkout session' },
+      { error: error.message || 'Failed to create checkout session' },
       { status: 500 }
     );
   }
@@ -92,7 +107,8 @@ export async function POST(request: NextRequest) {
 async function triggerMagicLink(
   email: string,
   guestSessionId: string,
-  animationId: string
+  animationId: string,
+  baseUrl: string
 ) {
   try {
     const supabase = await createServerSupabaseClient();
@@ -100,7 +116,7 @@ async function triggerMagicLink(
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?guestSessionId=${guestSessionId}&animationId=${animationId}`,
+        emailRedirectTo: `${baseUrl}/auth/callback?guestSessionId=${guestSessionId}&animationId=${animationId}`,
         data: {
           guestSessionId,
           animationId,

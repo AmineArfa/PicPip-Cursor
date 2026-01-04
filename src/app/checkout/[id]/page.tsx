@@ -91,11 +91,13 @@ export default function CheckoutPage() {
         }),
       });
 
+      const data = await response.json().catch(() => ({}));
+
       if (!response.ok) {
-        throw new Error('Failed to create checkout session');
+        throw new Error(data.error || 'Failed to create checkout session');
       }
 
-      const { sessionId, url } = await response.json();
+      const { sessionId, url } = data;
 
       // Redirect to Stripe Checkout
       if (url) {

@@ -5,11 +5,13 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Sparkles, Image as ImageIcon, LogIn, User } from 'lucide-react';
+import { Header } from '@/components/header';
 import { DotPattern, NeoButton } from '@/components/ui';
 import { PipMascot } from '@/components/pip-mascot';
 import { usePicPipStore } from '@/lib/store';
 import { validateImageFile, generateGuestSessionId } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import type { Profile } from '@/lib/supabase/types';
 
 export default function HomePage() {
   const router = useRouter();
@@ -17,6 +19,8 @@ export default function HomePage() {
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [credits, setCredits] = useState(0);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   
   const { 
@@ -38,6 +42,19 @@ export default function HomePage() {
         // Refresh the session to extend expiration
         await supabase.auth.refreshSession();
         setIsAuthenticated(true);
+
+        // Fetch profile to get credits and subscription status
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+        
+        const typedProfile = profile as Profile | null;
+        if (typedProfile?.subscription_status === 'active' || typedProfile?.subscription_status === 'trial') {
+          setIsSubscribed(true);
+        }
+        setCredits(typedProfile?.credits || 0);
       } else {
         setIsAuthenticated(false);
       }
@@ -126,7 +143,13 @@ export default function HomePage() {
   }, []);
 
   return (
-    <DotPattern className="flex flex-col items-center justify-center p-4 overflow-hidden">
+    <DotPattern className="flex flex-col min-h-screen overflow-hidden">
+      <Header 
+        isAuthenticated={isAuthenticated} 
+        isSubscribed={isSubscribed} 
+        credits={credits} 
+      />
+
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
@@ -144,49 +167,8 @@ export default function HomePage() {
         }}
       />
 
-      {/* Auth Button - Top Right */}
-      {!isLoadingAuth && (
-        <div className="absolute top-6 right-6 z-50 flex gap-3">
-          {isAuthenticated ? (
-            <>
-              <Link href="/memories">
-                <motion.button
-                  className="flex items-center gap-2 px-4 py-2 bg-white border-3 border-[#181016] rounded-full shadow-[3px_3px_0_0_#181016] hover:shadow-[4px_4px_0_0_#181016] hover:-translate-y-0.5 transition-all"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <Sparkles className="w-5 h-5 text-[#181016]" />
-                  <span className="font-bold text-[#181016] text-sm md:text-base">My Memories</span>
-                </motion.button>
-              </Link>
-              <Link href="/account">
-                <motion.button
-                  className="flex items-center gap-2 px-4 py-2 bg-[#ff61d2] text-white border-3 border-[#181016] rounded-full shadow-[3px_3px_0_0_#181016] hover:shadow-[4px_4px_0_0_#181016] hover:-translate-y-0.5 transition-all"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <User className="w-5 h-5" />
-                  <span className="font-bold text-sm md:text-base">Account</span>
-                </motion.button>
-              </Link>
-            </>
-          ) : (
-            <Link href="/login">
-              <motion.button
-                className="flex items-center gap-2 px-4 py-2 bg-white border-3 border-[#181016] rounded-full shadow-[3px_3px_0_0_#181016] hover:shadow-[4px_4px_0_0_#181016] hover:-translate-y-0.5 transition-all"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <LogIn className="w-5 h-5 text-[#181016]" />
-                <span className="font-bold text-[#181016] text-sm md:text-base">Login</span>
-              </motion.button>
-            </Link>
-          )}
-        </div>
-      )}
-
       {/* Main Container */}
-      <main className="w-full max-w-lg mx-auto flex flex-col items-center gap-6 relative z-10 text-center">
+      <main className="flex-1 w-full max-w-lg mx-auto flex flex-col items-center justify-center gap-6 relative z-10 text-center px-4 py-8">
         {/* Mascot Section */}
         <div className="relative mb-2">
           <PipMascot variant="frame" size="xl" />
@@ -203,7 +185,7 @@ export default function HomePage() {
 
         {/* Text Content */}
         <motion.div
-          className="flex flex-col items-center gap-2 mb-4 px-4"
+          className="flex flex-col items-center gap-2 mb-4"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -278,6 +260,21 @@ export default function HomePage() {
           )}
         </motion.div>
       </main>
+
+      {/* Decorative Wavy Lines */}
+      <div className="absolute bottom-0 left-0 w-full h-12 opacity-20 pointer-events-none overflow-hidden">
+        <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1200 40">
+          <path
+            d="M0 20 Q 150 0, 300 20 T 600 20 T 900 20 T 1200 20"
+            stroke="#2962ff"
+            strokeWidth="4"
+            fill="none"
+          />
+        </svg>
+      </div>
+    </DotPattern>
+  );
+}
 
       {/* Decorative Wavy Lines */}
       <div className="absolute bottom-0 left-0 w-full h-12 opacity-20 pointer-events-none overflow-hidden">

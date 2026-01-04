@@ -133,11 +133,13 @@ export default function PricingPage() {
           }),
         });
 
+        const data = await response.json().catch(() => ({}));
+
         if (!response.ok) {
-          throw new Error('Failed to create checkout session');
+          throw new Error(data.error || 'Failed to create checkout session');
         }
 
-        const { url } = await response.json();
+        const { url } = data;
         if (url) {
           window.location.href = url;
         }
