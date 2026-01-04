@@ -2,9 +2,8 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { User, HelpCircle, Menu, X, Zap, Infinity as InfinityIcon } from 'lucide-react';
-import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { User, HelpCircle, Zap, Infinity as InfinityIcon, Clapperboard, Home } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { usePicPipStore } from '@/lib/store';
 
@@ -87,29 +86,84 @@ export function Header({
   credits = 0,
   step,
 }: HeaderProps) {
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-
   return (
     <header className="w-full border-b-4 border-[#181016] bg-white px-4 sm:px-6 py-3 sm:py-4 sticky top-0 z-50 shadow-[0_4px_0_0_#181016]">
       <div className="mx-auto flex max-w-7xl items-center justify-between">
-        {/* Logo */}
+        {/* Logo - Hidden on mobile */}
         <Link
           href="/"
-          className="flex items-center gap-2 sm:gap-3 select-none group"
+          className="select-none group hidden md:block"
         >
-          <div className="relative size-9 sm:size-10 group-hover:scale-110 transition-transform">
+          <div className="relative h-16 w-48 lg:h-20 lg:w-56 group-hover:scale-105 transition-transform">
             <Image
               src="/picpip_logo.svg"
-              alt="PicPip Logo"
+              alt="PicPip"
               fill
               className="object-contain"
               priority
             />
           </div>
-          <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#181016] font-display">
-            PicPip.co
-          </h2>
         </Link>
+
+        {/* Mobile Navigation - Home + Credit badge + 3 icons */}
+        {showNav && variant === 'default' && (
+          <nav className="flex md:hidden items-center justify-between w-full gap-2">
+            {/* Home + Credit Bar */}
+            <div className="flex items-center gap-2">
+              <Link
+                href="/"
+                className="p-2.5 rounded-full hover:bg-gray-100 transition-colors border-2 border-transparent hover:border-[#181016]"
+                aria-label="Home"
+              >
+                <Home className="w-5 h-5 text-[#181016]" />
+              </Link>
+              {isAuthenticated && (
+                <CreditBar credits={credits} isSubscribed={isSubscribed} />
+              )}
+              {!isAuthenticated && (
+                <Link
+                  href="/pricing"
+                  className="flex items-center gap-2 px-3 py-1.5 bg-[#ff61d2] border-3 border-[#181016] rounded-full text-white font-bold text-sm"
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>Get Credits</span>
+                </Link>
+              )}
+            </div>
+            
+            {/* Icon buttons */}
+            <div className="flex items-center gap-1">
+              {isAuthenticated && (
+                <Link
+                  href="/memories"
+                  className="p-2.5 rounded-full hover:bg-gray-100 transition-colors border-2 border-transparent hover:border-[#181016]"
+                  aria-label="My Memories"
+                >
+                  <Clapperboard className="w-5 h-5 text-[#181016]" />
+                </Link>
+              )}
+              <Link
+                href="/help"
+                className="p-2.5 rounded-full hover:bg-gray-100 transition-colors border-2 border-transparent hover:border-[#181016]"
+                aria-label="Help"
+              >
+                <HelpCircle className="w-5 h-5 text-[#181016]" />
+              </Link>
+              <Link
+                href={isAuthenticated ? '/account' : '/login'}
+                className={cn(
+                  'p-2.5 rounded-full transition-colors border-2',
+                  isAuthenticated 
+                    ? 'hover:bg-gray-100 border-transparent hover:border-[#181016]' 
+                    : 'bg-[#ff61d2] border-[#181016]'
+                )}
+                aria-label={isAuthenticated ? 'My Account' : 'Sign In'}
+              >
+                <User className={cn('w-5 h-5', isAuthenticated ? 'text-[#181016]' : 'text-white')} />
+              </Link>
+            </div>
+          </nav>
+        )}
 
         {/* Desktop Navigation */}
         {showNav && variant === 'default' && (
@@ -178,74 +232,7 @@ export function Header({
           </div>
         )}
 
-        {/* Mobile Menu Button */}
-        {showNav && variant === 'default' && (
-          <button
-            className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label="Toggle menu"
-          >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
-          </button>
-        )}
       </div>
-
-      {/* Mobile Menu */}
-      <AnimatePresence>
-        {mobileMenuOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
-            exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-t-4 border-[#181016] mt-3 pt-4"
-          >
-            <nav className="flex flex-col gap-2">
-              {isAuthenticated && (
-                <>
-                  {/* Mobile Credit Bar */}
-                  <div className="px-4 py-3" onClick={() => setMobileMenuOpen(false)}>
-                    <CreditBar credits={credits} isSubscribed={isSubscribed} />
-                  </div>
-                  <Link
-                    href="/memories"
-                    className="px-4 py-3 text-lg font-bold hover:bg-gray-100 rounded-lg"
-                    onClick={() => setMobileMenuOpen(false)}
-                  >
-                    My Memories
-                  </Link>
-                  {!isSubscribed && (
-                    <Link
-                      href="/pricing"
-                      className="px-4 py-3 text-lg font-bold text-[#ff61d2] hover:bg-gray-100 rounded-lg"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      Upgrade
-                    </Link>
-                  )}
-                </>
-              )}
-              <Link
-                href="/help"
-                className="px-4 py-3 text-lg font-bold hover:bg-gray-100 rounded-lg"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Help & Support
-              </Link>
-              <Link
-                href={isAuthenticated ? '/account' : '/login'}
-                className="px-4 py-3 text-lg font-bold bg-[#ff61d2] text-white rounded-lg mt-2"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {isAuthenticated ? 'My Account' : 'Sign In'}
-              </Link>
-            </nav>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </header>
   );
 }

@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Sparkles, Image as ImageIcon, LogIn, User } from 'lucide-react';
 import { Header } from '@/components/header';
+import { Footer } from '@/components/footer';
 import { DotPattern, NeoButton } from '@/components/ui';
 import { PipMascot } from '@/components/pip-mascot';
 import { usePicPipStore } from '@/lib/store';
@@ -258,9 +259,9 @@ function HomeContent() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 w-full max-w-lg mx-auto flex flex-col items-center justify-center gap-6 relative z-10 text-center px-4 py-8">
+      <main className="flex-1 w-full max-w-lg mx-auto flex flex-col items-center justify-center gap-8 relative z-10 text-center px-4 py-16 md:py-24 min-h-[calc(100vh-140px)]">
         {/* Mascot Section */}
-        <div className="relative mb-2">
+        <div className="relative mb-8 md:mb-12">
           <PipMascot variant="frame" size="xl" />
           
           {/* Floating photo icon */}
@@ -275,12 +276,12 @@ function HomeContent() {
 
         {/* Text Content */}
         <motion.div
-          className="flex flex-col items-center gap-2 mb-4"
+          className="flex flex-col items-center gap-3 mb-10 md:mb-14"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          <h1 className="font-display text-4xl md:text-5xl font-bold text-[#2962ff] leading-tight tracking-tight drop-shadow-sm">
+          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl font-bold text-[#2962ff] leading-tight tracking-tight drop-shadow-sm">
             Bring Your <br /> Pictures to Life!
           </h1>
         </motion.div>
@@ -298,7 +299,7 @@ function HomeContent() {
 
         {/* Action Buttons */}
         <motion.div
-          className="flex flex-col gap-5 w-full items-center"
+          className="flex flex-col gap-6 w-full items-center mb-12 md:mb-16"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
@@ -351,17 +352,8 @@ function HomeContent() {
         </motion.div>
       </main>
 
-      {/* Decorative Wavy Lines */}
-      <div className="absolute bottom-0 left-0 w-full h-12 opacity-20 pointer-events-none overflow-hidden">
-        <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1200 40">
-          <path
-            d="M0 20 Q 150 0, 300 20 T 600 20 T 900 20 T 1200 20"
-            stroke="#2962ff"
-            strokeWidth="4"
-            fill="none"
-          />
-        </svg>
-      </div>
+      {/* Footer */}
+      <Footer />
     </DotPattern>
   );
 }

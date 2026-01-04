@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Star, Users, Check, Sparkles, ArrowRight } from 'lucide-react';
 import { Header } from '@/components/header';
+import { Footer } from '@/components/footer';
 import { DotPattern, NeoButton, NeoCard } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
 import { useEffect } from 'react';
@@ -306,6 +307,9 @@ export default function PricingPage() {
           )}
         </div>
       </main>
+
+      {/* Footer */}
+      <Footer />
     </DotPattern>
   );
 }

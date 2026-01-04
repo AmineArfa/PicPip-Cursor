@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Send, X, Mail } from 'lucide-react';
+import { Send, Mail } from 'lucide-react';
 import { Header } from '@/components/header';
 import { NeoButton, NeoInput } from '@/components/ui';
 import { PipMascot } from '@/components/pip-mascot';
+import { createClient } from '@/lib/supabase/client';
 
 export default function HelpPage() {
   const [email, setEmail] = useState('');
@@ -14,6 +15,33 @@ export default function HelpPage() {
   const [submitted, setSubmitted] = useState(false);
   const [ticketNumber, setTicketNumber] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [credits, setCredits] = useState(0);
+
+  useEffect(() => {
+    async function checkAuth() {
+      const supabase = createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        setIsAuthenticated(true);
+        
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (profile) {
+          setIsSubscribed(profile.subscription_status === 'active' || profile.subscription_status === 'trial');
+          setCredits(profile.credits || 0);
+        }
+      }
+    }
+    
+    checkAuth();
+  }, []);
 
   const handleSubmit = async () => {
     if (!email.trim() || !question.trim()) return;
@@ -64,21 +92,15 @@ export default function HelpPage() {
     }
   };
 
-  const handleClose = () => {
-    window.history.back();
-  };
-
   return (
-    <div className="min-h-screen bg-[#FFE4D6] relative">
-      {/* Close Button */}
-      <button
-        onClick={handleClose}
-        className="absolute top-6 right-6 z-50 w-12 h-12 rounded-full bg-white border-3 border-[#181016] flex items-center justify-center hover:bg-gray-50 transition-colors"
-      >
-        <X className="w-6 h-6" />
-      </button>
+    <div className="min-h-screen bg-[#FFE4D6] relative flex flex-col">
+      <Header 
+        isAuthenticated={isAuthenticated} 
+        isSubscribed={isSubscribed} 
+        credits={credits} 
+      />
 
-      <main className="flex flex-col items-center justify-center min-h-screen p-4">
+      <main className="flex flex-col items-center justify-center flex-1 p-4">
         {/* Mascot */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

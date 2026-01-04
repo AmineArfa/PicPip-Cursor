@@ -5,12 +5,13 @@ import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import Confetti from 'react-confetti';
 import { useWindowSize } from 'react-use';
-import { Download, MessageCircle, Mail, PartyPopper, Lock, Eye, EyeOff, CheckCircle, Sparkles } from 'lucide-react';
+import { Download, MessageCircle, Mail, PartyPopper, Lock, Eye, EyeOff, CheckCircle, Sparkles, AlertTriangle, Share2, Copy, Check as CheckIcon } from 'lucide-react';
+import { Header } from '@/components/header';
 import { DotPattern, NeoButton } from '@/components/ui';
 import { VideoPlayer } from '@/components/video-player';
 import { PipMascot } from '@/components/pip-mascot';
 import { createClient } from '@/lib/supabase/client';
-import type { Database, Animation } from '@/lib/supabase/types';
+import type { Animation } from '@/lib/supabase/types';
 
 function CelebrationContent() {
   const router = useRouter();
@@ -34,6 +35,9 @@ function CelebrationContent() {
   const [isCreatingAccount, setIsCreatingAccount] = useState(false);
   const [accountError, setAccountError] = useState<string | null>(null);
   const [accountCreated, setAccountCreated] = useState(false);
+  const [accessDenied, setAccessDenied] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [credits, setCredits] = useState(0);
 
   // Stop confetti after a few seconds
   useEffect(() => {
@@ -51,12 +55,38 @@ function CelebrationContent() {
         const { data: { user } } = await supabase.auth.getUser();
         setIsLoggedIn(!!user);
         
+        if (user) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          if (profile) {
+            setIsSubscribed(profile.subscription_status === 'active' || profile.subscription_status === 'trial');
+            setCredits(profile.credits || 0);
+          }
+        }
+        
         // Fetch animation
         const response = await fetch(`/api/status/${animationId}`);
         if (!response.ok) throw new Error('Failed to fetch animation');
         
         const data = await response.json();
         setAnimation(data);
+        
+        // ACCESS CONTROL: Check if user has access to unwatermarked video
+        // If video_url is null (API hides it for unpaid), redirect to checkout
+        // Exception: if we have a session_id, user just paid via Stripe
+        if (!data.video_url && !sessionId) {
+          console.log('Access denied: No video URL and no session_id');
+          setAccessDenied(true);
+          // Wait a moment then redirect to checkout
+          setTimeout(() => {
+            router.replace(`/checkout/${animationId}`);
+          }, 2000);
+          return;
+        }
         
         // Determine if we need to show account creation prompt
         // Show if: has session_id (just paid) + not logged in + has email in URL
@@ -65,13 +95,14 @@ function CelebrationContent() {
         }
       } catch (err) {
         console.error('Error initializing:', err);
+        setAccessDenied(true);
       } finally {
         setLoading(false);
       }
     }
     
     init();
-  }, [animationId, sessionId, guestEmail]);
+  }, [animationId, sessionId, guestEmail, router]);
 
   const handleCreateAccount = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -136,11 +167,18 @@ function CelebrationContent() {
     setShowAccountPrompt(false);
   };
 
+  // Check if user has access to unwatermarked video
+  const hasUnwatermarkedAccess = !!animation?.video_url;
+
   const handleDownload = async () => {
-    if (!animation?.video_url) return;
+    if (!hasUnwatermarkedAccess) {
+      // Can't download without unwatermarked video access
+      alert('Your video is still being processed. Please wait a moment and try again.');
+      return;
+    }
     
     try {
-      const response = await fetch(animation.video_url);
+      const response = await fetch(animation!.video_url!);
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -153,20 +191,83 @@ function CelebrationContent() {
     } catch (err) {
       console.error('Download error:', err);
       // Fallback: open in new tab
-      window.open(animation.video_url, '_blank');
+      window.open(animation!.video_url!, '_blank');
     }
   };
 
   const handleWhatsApp = () => {
+    if (!hasUnwatermarkedAccess) {
+      alert('Your video is still being processed. Please wait a moment and try again.');
+      return;
+    }
     const text = encodeURIComponent('Check out this magical memory I created with PicPip! 🎬✨');
     const url = encodeURIComponent(animation?.video_url || window.location.href);
     window.open(`https://wa.me/?text=${text}%20${url}`, '_blank');
   };
 
   const handleEmail = () => {
+    if (!hasUnwatermarkedAccess) {
+      alert('Your video is still being processed. Please wait a moment and try again.');
+      return;
+    }
     const subject = encodeURIComponent('My Magical Memory from PicPip!');
     const body = encodeURIComponent(`I created this amazing animated memory with PicPip.co!\n\nWatch it here: ${animation?.video_url || window.location.href}`);
     window.location.href = `mailto:?subject=${subject}&body=${body}`;
+  };
+
+  const handleTikTok = async () => {
+    if (!hasUnwatermarkedAccess) {
+      alert('Your video is still being processed. Please wait a moment and try again.');
+      return;
+    }
+    // TikTok doesn't have a direct share URL - download video first then user can upload
+    // First download, then open TikTok
+    await handleDownload();
+    // Open TikTok app/website
+    window.open('https://www.tiktok.com/upload', '_blank');
+  };
+
+  const handleInstagram = async () => {
+    if (!hasUnwatermarkedAccess) {
+      alert('Your video is still being processed. Please wait a moment and try again.');
+      return;
+    }
+    // Instagram doesn't support direct video sharing via URL
+    // Download video first, then user can upload
+    await handleDownload();
+    // Open Instagram (will open app on mobile, website on desktop)
+    window.open('https://www.instagram.com/', '_blank');
+  };
+
+  const handleFacebook = () => {
+    if (!hasUnwatermarkedAccess) {
+      alert('Your video is still being processed. Please wait a moment and try again.');
+      return;
+    }
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://www.facebook.com/sharer/sharer.php?u=${url}`, '_blank', 'width=600,height=400');
+  };
+
+  const handleTwitter = () => {
+    if (!hasUnwatermarkedAccess) {
+      alert('Your video is still being processed. Please wait a moment and try again.');
+      return;
+    }
+    const text = encodeURIComponent('Check out this magical memory I created with PicPip! 🎬✨');
+    const url = encodeURIComponent(window.location.href);
+    window.open(`https://twitter.com/intent/tweet?text=${text}&url=${url}`, '_blank', 'width=600,height=400');
+  };
+
+  const [copied, setCopied] = useState(false);
+  
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
   };
 
   if (loading) {
@@ -177,6 +278,32 @@ function CelebrationContent() {
           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           className="w-12 h-12 border-4 border-[#ff61d2] border-t-transparent rounded-full"
         />
+      </DotPattern>
+    );
+  }
+
+  // Access denied - redirect in progress
+  if (accessDenied) {
+    return (
+      <DotPattern className="min-h-screen flex items-center justify-center">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white border-4 border-[#181016] rounded-3xl shadow-[8px_8px_0_0_#181016] p-8 max-w-md mx-4 text-center"
+        >
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-yellow-100 border-4 border-[#181016] flex items-center justify-center">
+            <AlertTriangle className="w-8 h-8 text-yellow-600" />
+          </div>
+          <h2 className="font-display text-2xl font-bold text-[#181016] mb-2">
+            Almost there!
+          </h2>
+          <p className="text-[#181016]/70 mb-4">
+            You need to complete your purchase to access this video.
+          </p>
+          <p className="text-sm text-[#181016]/50">
+            Redirecting to checkout...
+          </p>
+        </motion.div>
       </DotPattern>
     );
   }
@@ -209,21 +336,11 @@ function CelebrationContent() {
         transition={{ duration: 2, repeat: Infinity }}
       />
 
-      {/* Minimal Header */}
-      <div className="w-full py-4 flex justify-between items-center px-4">
-        <div className="flex items-center gap-2 px-4 py-2 bg-white border-4 border-[#181016] rounded-full shadow-[4px_4px_0_0_#181016]">
-          <PartyPopper className="w-5 h-5 text-[#ff61d2]" />
-          <span className="font-display font-bold text-lg">PicPip.co</span>
-        </div>
-        <button 
-          onClick={() => router.push(isLoggedIn ? '/memories' : '/login')}
-          className="p-2 rounded-full border-2 border-[#181016] bg-white hover:bg-gray-50"
-        >
-          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-          </svg>
-        </button>
-      </div>
+      <Header 
+        isAuthenticated={isLoggedIn} 
+        isSubscribed={isSubscribed} 
+        credits={credits} 
+      />
 
       <main className="flex-1 flex flex-col items-center justify-center p-4 pb-8">
         <AnimatePresence mode="wait">
@@ -368,9 +485,9 @@ function CelebrationContent() {
           transition={{ delay: 0.2 }}
         >
           <VideoPlayer
-            src={animation?.video_url || '/demo-video.mp4'}
+            src={animation?.video_url || animation?.watermarked_video_url || '/demo-video.mp4'}
             poster={animation?.original_photo_url || undefined}
-            showWatermark={false}
+            showWatermark={!animation?.video_url}
             autoPlay
             loop
           />
@@ -383,6 +500,7 @@ function CelebrationContent() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
+          {/* Primary Action - Download */}
           <NeoButton
             variant="primary"
             size="lg"
@@ -392,27 +510,100 @@ function CelebrationContent() {
             Save to My Phone
           </NeoButton>
 
-          <NeoButton
-            variant="lime"
-            size="lg"
-            icon={<MessageCircle className="w-6 h-6" />}
-            onClick={handleWhatsApp}
-          >
-            Send on WhatsApp
-          </NeoButton>
+          {/* Social Sharing Grid */}
+          <div className="bg-white border-4 border-[#181016] rounded-2xl shadow-[6px_6px_0_0_#181016] p-4">
+            <div className="flex items-center gap-2 mb-4">
+              <Share2 className="w-5 h-5 text-[#ff61d2]" />
+              <span className="font-bold text-[#181016]">Share your memory</span>
+            </div>
+            
+            <div className="grid grid-cols-3 gap-3">
+              {/* TikTok */}
+              <button
+                onClick={handleTikTok}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-black text-white border-2 border-[#181016] hover:scale-105 transition-transform"
+              >
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                </svg>
+                <span className="text-xs font-bold">TikTok</span>
+              </button>
 
-          <NeoButton
-            variant="secondary"
-            size="lg"
-            icon={<Mail className="w-6 h-6" />}
-            onClick={handleEmail}
-          >
-            Send to My Email
-          </NeoButton>
+              {/* Instagram */}
+              <button
+                onClick={handleInstagram}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl text-white border-2 border-[#181016] hover:scale-105 transition-transform"
+                style={{ background: 'linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)' }}
+              >
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+                </svg>
+                <span className="text-xs font-bold">Instagram</span>
+              </button>
+
+              {/* WhatsApp */}
+              <button
+                onClick={handleWhatsApp}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-[#25D366] text-white border-2 border-[#181016] hover:scale-105 transition-transform"
+              >
+                <MessageCircle className="w-6 h-6" />
+                <span className="text-xs font-bold">WhatsApp</span>
+              </button>
+
+              {/* Facebook */}
+              <button
+                onClick={handleFacebook}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-[#1877F2] text-white border-2 border-[#181016] hover:scale-105 transition-transform"
+              >
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                </svg>
+                <span className="text-xs font-bold">Facebook</span>
+              </button>
+
+              {/* X (Twitter) */}
+              <button
+                onClick={handleTwitter}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-black text-white border-2 border-[#181016] hover:scale-105 transition-transform"
+              >
+                <svg className="w-6 h-6" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                </svg>
+                <span className="text-xs font-bold">X</span>
+              </button>
+
+              {/* Email */}
+              <button
+                onClick={handleEmail}
+                className="flex flex-col items-center gap-2 p-3 rounded-xl bg-[#EA4335] text-white border-2 border-[#181016] hover:scale-105 transition-transform"
+              >
+                <Mail className="w-6 h-6" />
+                <span className="text-xs font-bold">Email</span>
+              </button>
+            </div>
+
+            {/* Copy Link */}
+            <button
+              onClick={handleCopyLink}
+              className="mt-4 w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border-2 border-[#181016] bg-gray-50 hover:bg-gray-100 transition-colors font-bold text-[#181016]"
+            >
+              {copied ? (
+                <>
+                  <CheckIcon className="w-5 h-5 text-green-500" />
+                  <span>Link Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-5 h-5" />
+                  <span>Copy Link</span>
+                </>
+              )}
+            </button>
+          </div>
 
           {/* Account prompt or email reminder */}
           <motion.div
-            className="mt-4 bg-white border-2 border-dashed border-[#181016]/30 rounded-xl p-4 text-center"
+            className="mt-2 bg-white border-2 border-dashed border-[#181016]/30 rounded-xl p-4 text-center"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6 }}

@@ -4,12 +4,12 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Heart, RefreshCw } from 'lucide-react';
-import { Header } from '@/components/header';
 import { DotPattern, NeoButton } from '@/components/ui';
 import { VideoPlayer } from '@/components/video-player';
 import { PipMascot } from '@/components/pip-mascot';
 import { usePicPipStore } from '@/lib/store';
-import type { Animation } from '@/lib/supabase/types';
+import { createClient } from '@/lib/supabase/client';
+import type { Animation, Profile } from '@/lib/supabase/types';
 
 export default function PreviewPage() {
   const router = useRouter();
@@ -18,43 +18,75 @@ export default function PreviewPage() {
   
   const [animation, setAnimationState] = useState<Animation | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isSubscribed, setIsSubscribed] = useState(false);
+  const [hasCredits, setHasCredits] = useState(false);
+  const [credits, setCredits] = useState(0);
   
-  const { 
-    currentAnimation, 
-    isAuthenticated, 
-    isSubscribed 
-  } = usePicPipStore();
+  const { currentAnimation } = usePicPipStore();
 
-  // Fetch animation data
+  // Check auth status and fetch animation
   useEffect(() => {
-    async function fetchAnimation() {
+    async function init() {
       try {
+        const supabase = createClient();
+        
+        // Check authentication
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (user) {
+          setIsAuthenticated(true);
+          
+          // Check subscription status and credits
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+          
+          const typedProfile = profile as Profile | null;
+          if (typedProfile) {
+            const subscribed = typedProfile.subscription_status === 'active' || 
+                              typedProfile.subscription_status === 'trial';
+            setIsSubscribed(subscribed);
+            setCredits(typedProfile.credits || 0);
+            setHasCredits((typedProfile.credits || 0) > 0);
+          }
+        }
+        
+        // Fetch animation data
         // First check if we have it in state
         if (currentAnimation?.id === animationId) {
           setAnimationState(currentAnimation);
-          setLoading(false);
-          return;
+        } else {
+          const response = await fetch(`/api/status/${animationId}`);
+          if (response.ok) {
+            const data = await response.json();
+            setAnimationState(data);
+          }
         }
-        
-        const response = await fetch(`/api/status/${animationId}`);
-        if (!response.ok) throw new Error('Failed to fetch animation');
-        
-        const data = await response.json();
-        setAnimationState(data);
       } catch (err) {
-        console.error('Error fetching animation:', err);
+        console.error('Error initializing preview:', err);
       } finally {
         setLoading(false);
       }
     }
     
-    fetchAnimation();
+    init();
   }, [animationId, currentAnimation]);
 
   const handleSaveThis = () => {
-    // If user is authenticated and subscribed, go to celebration
-    if (isAuthenticated && isSubscribed) {
+    // If animation is already paid, go to celebration
+    if (animation?.is_paid) {
       router.push(`/celebration/${animationId}`);
+      return;
+    }
+    
+    // If user is authenticated and subscribed, they can use their subscription
+    // But they still need to go through checkout to "use" the credit
+    if (isAuthenticated && (isSubscribed || hasCredits)) {
+      // Go to checkout where they can use their credit/subscription
+      router.push(`/checkout/${animationId}`);
     } else {
       // Otherwise, go to checkout/delivery wall
       router.push(`/checkout/${animationId}`);
@@ -66,12 +98,12 @@ export default function PreviewPage() {
   };
 
   // Determine if we should show watermark
+  // Show watermark if: not subscribed AND animation not paid
   const showWatermark = !isSubscribed && !animation?.is_paid;
   
   // Get the appropriate video URL
-  const videoUrl = showWatermark 
-    ? animation?.watermarked_video_url 
-    : animation?.video_url;
+  // API now returns null for video_url if not paid, so fallback to watermarked
+  const videoUrl = animation?.video_url || animation?.watermarked_video_url;
 
   if (loading) {
     return (
@@ -87,15 +119,11 @@ export default function PreviewPage() {
 
   return (
     <DotPattern className="min-h-screen flex flex-col">
-      {/* Minimal Header */}
-      <div className="w-full py-4 flex justify-center">
-        <div className="flex items-center gap-2 px-4 py-2 bg-white border-4 border-[#181016] rounded-full shadow-[4px_4px_0_0_#181016]">
-          <div className="w-6 h-6 bg-[#ff61d2] rounded flex items-center justify-center">
-            <span className="text-white text-xs">👤</span>
-          </div>
-          <span className="font-display font-bold text-lg">PicPip.co</span>
-        </div>
-      </div>
+      <Header 
+        isAuthenticated={isAuthenticated} 
+        isSubscribed={isSubscribed} 
+        credits={credits} 
+      />
 
       <main className="flex-1 flex flex-col items-center justify-center p-4 pb-8">
         {/* Title Section */}
@@ -179,4 +207,3 @@ export default function PreviewPage() {
     </DotPattern>
   );
 }
-

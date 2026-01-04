@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, ArrowLeft, Sparkles, Eye, EyeOff } from 'lucide-react';
 import { NeoButton } from '@/components/ui';
 import { PipMascot } from '@/components/pip-mascot';
+import { Footer } from '@/components/footer';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 
@@ -461,7 +462,14 @@ function LoginContent() {
 
             {authMode === 'signup' && (
               <p className="text-center text-[#181016]/60 text-sm mt-4">
-                By signing up, you agree to our Terms of Service and Privacy Policy.
+                By signing up, you agree to our{' '}
+                <Link href="/terms" className="text-[#2962ff] font-bold hover:underline">
+                  Terms of Service
+                </Link>
+                {' '}and{' '}
+                <Link href="/privacy" className="text-[#2962ff] font-bold hover:underline">
+                  Privacy Policy
+                </Link>.
               </p>
             )}
           </form>
@@ -470,6 +478,9 @@ function LoginContent() {
           </>
         )}
       </main>
+
+      {/* Footer with legal links */}
+      <Footer variant="minimal" />
     </div>
   );
 }
