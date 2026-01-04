@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getStripeServer, PRODUCTS } from '@/lib/stripe';
+import { getStripeServer } from '@/lib/stripe';
 import { createServerSupabaseClient, createServiceRoleClient } from '@/lib/supabase/server';
 
 export async function POST(request: NextRequest) {
@@ -9,10 +9,7 @@ export async function POST(request: NextRequest) {
     console.log('[Verify Checkout] Starting verification for session:', sessionId);
 
     if (!sessionId) {
-      return NextResponse.json(
-        { error: 'Missing session ID' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Missing session ID' }, { status: 400 });
     }
 
     // Get the current user
@@ -21,10 +18,7 @@ export async function POST(request: NextRequest) {
 
     if (!user) {
       console.log('[Verify Checkout] Not authenticated');
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
     console.log('[Verify Checkout] User:', user.id, user.email);
@@ -34,129 +28,68 @@ export async function POST(request: NextRequest) {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
 
     if (!session) {
-      console.log('[Verify Checkout] Session not found');
-      return NextResponse.json(
-        { error: 'Session not found' },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
     }
-
-    console.log('[Verify Checkout] Stripe session:', session.id, 'status:', session.status, 'payment_status:', session.payment_status);
-    console.log('[Verify Checkout] Metadata:', JSON.stringify(session.metadata));
 
     // Check if the session was successful
     if (session.payment_status !== 'paid' && session.status !== 'complete') {
-      console.log('[Verify Checkout] Payment not completed');
-      return NextResponse.json(
-        { error: 'Payment not completed' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Payment not completed' }, { status: 400 });
     }
 
     const productType = session.metadata?.productType;
-    
     if (!productType) {
-      console.log('[Verify Checkout] Unknown product type');
-      return NextResponse.json(
-        { error: 'Unknown product type' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Unknown product type' }, { status: 400 });
     }
 
     console.log('[Verify Checkout] Product type:', productType);
 
     const serviceSupabase = await createServiceRoleClient();
 
-    // Get current profile
-    const { data: profile, error: profileError } = await serviceSupabase
-      .from('profiles')
-      .select('credits, subscription_status')
-      .eq('id', user.id)
-      .single();
-
-    if (profileError) {
-      console.error('[Verify Checkout] Error getting profile:', profileError);
-    }
-
-    const currentCredits = profile?.credits || 0;
-    console.log('[Verify Checkout] Current credits:', currentCredits);
-
-    // Check if this session has already been processed by looking at purchases
+    // Check if purchase exists
     const { data: existingPurchase } = await serviceSupabase
       .from('purchases')
-      .select('id, product_type')
+      .select('id, user_id')
       .eq('stripe_session_id', session.id)
       .single();
 
-    console.log('[Verify Checkout] Existing purchase:', existingPurchase);
-
-    // Calculate expected credits based on product type
-    const expectedCreditsToAdd = productType === 'bundle' ? 10 : productType === 'single' ? 1 : 0;
-
-    if (existingPurchase) {
-      // Purchase was processed by webhook, but let's verify credits were actually added
-      // This is a sanity check - if the webhook processed it, credits should already be there
-      console.log('[Verify Checkout] Purchase already exists, returning current credits:', currentCredits);
-      return NextResponse.json({
-        success: true,
-        credits: currentCredits,
-        message: 'Purchase already processed',
-        productType
+    if (!existingPurchase) {
+      // Purchase doesn't exist - create it with user_id
+      // The database trigger will automatically add credits
+      console.log('[Verify Checkout] Creating new purchase with user_id');
+      await serviceSupabase.from('purchases').insert({
+        user_id: user.id,
+        stripe_session_id: session.id,
+        product_type: productType,
+        amount: session.amount_total || 0,
       });
-    }
-
-    // Purchase doesn't exist - webhook might have failed, so we process it now
-    console.log('[Verify Checkout] Processing purchase (webhook may have failed)');
-
-    let newCredits = currentCredits;
-    const updateData: Record<string, unknown> = {};
-
-    if (productType === 'subscription') {
-      updateData.subscription_status = 'trial';
-    } else if (productType === 'bundle') {
-      newCredits = currentCredits + 10;
-      updateData.credits = newCredits;
-    } else if (productType === 'single') {
-      newCredits = currentCredits + 1;
-      updateData.credits = newCredits;
-    }
-
-    // Update profile
-    if (Object.keys(updateData).length > 0) {
-      const { error: updateError } = await serviceSupabase
-        .from('profiles')
-        .update(updateData)
-        .eq('id', user.id);
-
-      if (updateError) {
-        console.error('[Verify Checkout] Error updating profile:', updateError);
-      } else {
-        console.log('[Verify Checkout] Profile updated:', updateData);
-      }
-    }
-
-    // Create purchase record
-    const { error: purchaseError } = await serviceSupabase.from('purchases').insert({
-      user_id: user.id,
-      animation_id: null,
-      stripe_session_id: session.id,
-      product_type: productType,
-      amount: session.amount_total || 0,
-    });
-
-    if (purchaseError) {
-      console.error('[Verify Checkout] Error creating purchase:', purchaseError);
+    } else if (existingPurchase.user_id === null) {
+      // Purchase exists but has no user_id - update it
+      // The database trigger will automatically add credits on this update
+      console.log('[Verify Checkout] Updating existing purchase with user_id');
+      await serviceSupabase
+        .from('purchases')
+        .update({ user_id: user.id })
+        .eq('id', existingPurchase.id);
     } else {
-      console.log('[Verify Checkout] Purchase created successfully');
+      console.log('[Verify Checkout] Purchase already has user_id');
     }
 
-    console.log('[Verify Checkout] Complete. New credits:', newCredits);
+    // Small delay to ensure triggers have executed
+    await new Promise(resolve => setTimeout(resolve, 100));
+
+    // Get updated credits
+    const { data: profile } = await serviceSupabase
+      .from('profiles')
+      .select('credits')
+      .eq('id', user.id)
+      .single();
+
+    console.log('[Verify Checkout] Final credits:', profile?.credits);
 
     return NextResponse.json({
       success: true,
-      credits: newCredits,
+      credits: profile?.credits || 0,
       productType,
-      creditsAdded: expectedCreditsToAdd
     });
   } catch (error: any) {
     console.error('[Verify Checkout] Error:', error);

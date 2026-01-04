@@ -64,6 +64,7 @@ function CheckoutContent() {
   const [isUsingCredit, setIsUsingCredit] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
+  const [userEmail, setUserEmail] = useState<string | null>(null); // Store auth email as fallback
   
   const { guestSessionId } = usePicPipStore();
 
@@ -75,6 +76,8 @@ function CheckoutContent() {
       
       if (user) {
         setUserId(user.id);
+        setUserEmail(user.email || null); // Store auth email
+        
         // Fetch user profile
         const { data: profileData } = await supabase
           .from('profiles')
@@ -178,8 +181,10 @@ function CheckoutContent() {
   };
 
   const handleCheckout = async (planType: PlanType) => {
-    // For logged-in users, use email from profile
-    const customerEmail = mode === 'logged_in' ? profile?.email : email;
+    // For logged-in users, use email from profile or auth session as fallback
+    const customerEmail = mode === 'logged_in' 
+      ? (profile?.email || userEmail) 
+      : email;
     
     if (!customerEmail) {
       setEmailError('Please enter your email address');
@@ -229,11 +234,20 @@ function CheckoutContent() {
     }
   };
 
+  // Calculate subscription status
+  const isSubscribed = profile?.subscription_status === 'active' || profile?.subscription_status === 'trial';
+  const isAuthenticated = mode === 'logged_in' && userId !== null;
+
   // Loading state
   if (mode === 'loading') {
     return (
       <DotPattern variant="dense" className="min-h-screen flex flex-col">
-        <Header step={{ current: 3, total: 3 }} />
+        <Header 
+          step={{ current: 3, total: 3 }}
+          isAuthenticated={false}
+          isSubscribed={false}
+          credits={0}
+        />
         <main className="flex-1 flex items-center justify-center">
           <motion.div
             animate={{ rotate: 360 }}
@@ -247,7 +261,12 @@ function CheckoutContent() {
 
   return (
     <DotPattern variant="dense" className="min-h-screen flex flex-col">
-      <Header step={{ current: 3, total: 3 }} />
+      <Header 
+        step={{ current: 3, total: 3 }}
+        isAuthenticated={isAuthenticated}
+        isSubscribed={isSubscribed}
+        credits={profile?.credits || 0}
+      />
 
       <main className="flex-1 py-8 sm:py-12 px-4">
         <div className="max-w-[1080px] mx-auto space-y-10">
@@ -288,7 +307,7 @@ function CheckoutContent() {
                         </div>
                         <div>
                           <p className="font-bold text-[#181016]">Welcome back!</p>
-                          <p className="text-sm text-[#181016]/60">{profile?.email}</p>
+                          <p className="text-sm text-[#181016]/60">{profile?.email || userEmail}</p>
                         </div>
                       </div>
                       {profile?.subscription_status === 'active' || profile?.subscription_status === 'trial' ? (
