@@ -1,15 +1,17 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
+import { useEffect, useState, Suspense } from 'react';
+import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Sparkles, Pencil, Check } from 'lucide-react';
+import { ArrowRight, Sparkles, Pencil, Check, Zap, Crown, ArrowLeft } from 'lucide-react';
 import { Header } from '@/components/header';
 import { DotPattern, NeoButton } from '@/components/ui';
 import { usePicPipStore } from '@/lib/store';
 import { createClient } from '@/lib/supabase/client';
-import type { Profile } from '@/lib/supabase/types';
+import { VIDEO_FORMATS } from '@/lib/runway/formats';
+import { CREDIT_COSTS } from '@/lib/stripe';
+import type { Profile, VideoFormat, QualityMode } from '@/lib/supabase/types';
 
 // Predefined action options with emoji icons
 const ACTION_OPTIONS = [
@@ -23,18 +25,25 @@ const ACTION_OPTIONS = [
   { id: 'wink', label: 'Wink', emoji: '😉', prompt: 'Playful wink, subtle expression, charming gesture' },
 ];
 
-export default function ChooseActionPage() {
+function ChooseActionContent() {
   const router = useRouter();
   const params = useParams();
+  const searchParams = useSearchParams();
   const animationId = params.id as string;
+  
+  // Get format from URL or default to tiktok
+  const formatParam = searchParams.get('format') as VideoFormat | null;
+  const selectedFormat = formatParam && VIDEO_FORMATS[formatParam] ? formatParam : 'tiktok';
 
   const [selectedAction, setSelectedAction] = useState<string | null>(null);
   const [customPrompt, setCustomPrompt] = useState('');
   const [showCustomInput, setShowCustomInput] = useState(false);
+  const [qualityMode, setQualityMode] = useState<QualityMode>('fast');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [credits, setCredits] = useState(0);
+  const [dailyHighRemaining, setDailyHighRemaining] = useState(5);
 
   const { currentAnimation, setAnimation, setProcessingStatus } = usePicPipStore();
 
@@ -57,6 +66,17 @@ export default function ChooseActionPage() {
           setIsSubscribed(true);
         }
         setCredits(typedProfile?.credits || 0);
+        
+        // Calculate daily high remaining
+        const today = new Date().toISOString().split('T')[0];
+        const resetDate = typedProfile?.high_quality_reset_date;
+        const highCount = typedProfile?.high_quality_count_today || 0;
+        
+        if (resetDate === today) {
+          setDailyHighRemaining(Math.max(0, 5 - highCount));
+        } else {
+          setDailyHighRemaining(5);
+        }
       }
     };
 
@@ -93,15 +113,32 @@ export default function ChooseActionPage() {
     return '';
   };
 
+  const getCreditCost = () => CREDIT_COSTS[qualityMode];
+
+  const canAfford = () => {
+    if (isSubscribed) {
+      if (qualityMode === 'high') {
+        return dailyHighRemaining > 0;
+      }
+      return true; // Unlimited fast for subscribers
+    }
+    return credits >= getCreditCost();
+  };
+
   const handleContinue = async () => {
     const promptText = getSelectedPrompt();
     if (!promptText) return;
+
+    if (!canAfford()) {
+      router.push('/pricing');
+      return;
+    }
 
     setIsSubmitting(true);
     setProcessingStatus('processing', 'Starting the magic...');
 
     try {
-      // Trigger the Runway job with the selected prompt
+      // Trigger the Runway job with the selected prompt, format, and quality
       const response = await fetch('/api/runway/create-job', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -109,6 +146,9 @@ export default function ChooseActionPage() {
           animationId,
           imageUrl: currentAnimation?.original_photo_url,
           promptText,
+          format: selectedFormat,
+          qualityMode,
+          duration: VIDEO_FORMATS[selectedFormat].duration,
         }),
       });
 
@@ -126,6 +166,7 @@ export default function ChooseActionPage() {
   };
 
   const isReadyToContinue = showCustomInput ? customPrompt.trim().length > 0 : selectedAction !== null;
+  const formatInfo = VIDEO_FORMATS[selectedFormat];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#00d4ff] via-[#00b8e6] to-[#0099cc] flex flex-col">
@@ -150,18 +191,34 @@ export default function ChooseActionPage() {
         />
 
         <div className="w-full max-w-4xl mx-auto z-10">
-          {/* Title */}
+          {/* Back button and Title */}
           <motion.div
-            className="text-center mb-8"
+            className="mb-8"
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <h1 className="font-display text-4xl md:text-5xl font-bold text-white drop-shadow-lg mb-3">
-              Choose the Magic! ✨
-            </h1>
-            <p className="text-xl text-white/90 font-medium">
-              What should your picture do?
-            </p>
+            <button
+              onClick={() => router.push(`/choose-format/${animationId}`)}
+              className="flex items-center gap-2 text-white/80 hover:text-white mb-4 font-medium transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Change format
+            </button>
+            <div className="text-center">
+              <h1 className="font-display text-4xl md:text-5xl font-bold text-white drop-shadow-lg mb-3">
+                Choose the Magic! ✨
+              </h1>
+              <p className="text-xl text-white/90 font-medium">
+                What should your picture do?
+              </p>
+              {/* Format badge */}
+              <div className="mt-3 inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full text-white font-medium">
+                <span>{formatInfo.icon}</span>
+                <span>{formatInfo.name}</span>
+                <span className="text-white/70">•</span>
+                <span className="text-white/70">{formatInfo.aspectRatio}</span>
+              </div>
+            </div>
           </motion.div>
 
           {/* Main Card */}
@@ -173,7 +230,18 @@ export default function ChooseActionPage() {
             <div className="flex flex-col lg:flex-row gap-8">
               {/* Photo Preview */}
               <div className="lg:w-2/5 flex-shrink-0">
-                <div className="relative aspect-[3/4] w-full max-w-[280px] mx-auto bg-gray-100 rounded-2xl overflow-hidden border-4 border-[#181016] shadow-[4px_4px_0_0_#181016]">
+                <div 
+                  className="relative w-full max-w-[280px] mx-auto bg-gray-100 rounded-2xl overflow-hidden border-4 border-[#181016] shadow-[4px_4px_0_0_#181016]"
+                  style={{
+                    aspectRatio: selectedFormat === 'landscape' 
+                      ? '16/9' 
+                      : selectedFormat === 'instagram_square'
+                      ? '1/1'
+                      : selectedFormat === 'instagram_portrait'
+                      ? '4/5'
+                      : '9/16',
+                  }}
+                >
                   {currentAnimation?.original_photo_url ? (
                     <Image
                       src={currentAnimation.original_photo_url}
@@ -286,36 +354,129 @@ export default function ChooseActionPage() {
                   </AnimatePresence>
                 </div>
 
+                {/* Quality Mode Toggle */}
+                <div className="mb-6">
+                  <h3 className="text-sm font-bold text-[#181016] mb-3 flex items-center gap-2">
+                    <Zap className="w-4 h-4" />
+                    Video Quality
+                  </h3>
+                  <div className="grid grid-cols-2 gap-3">
+                    {/* Fast Mode */}
+                    <motion.button
+                      onClick={() => setQualityMode('fast')}
+                      className={`
+                        relative p-4 rounded-xl border-3 transition-all
+                        ${qualityMode === 'fast'
+                          ? 'border-[#00d4ff] bg-[#00d4ff]/10 shadow-[3px_3px_0_0_#00d4ff]'
+                          : 'border-[#181016] bg-white hover:bg-gray-50 shadow-[3px_3px_0_0_#181016]'
+                        }
+                      `}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Zap className="w-5 h-5 text-[#00d4ff]" />
+                          <span className="font-bold">Fast</span>
+                        </div>
+                        {qualityMode === 'fast' && (
+                          <div className="w-5 h-5 bg-[#00d4ff] rounded-full flex items-center justify-center">
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-[#181016]/60 text-left">~30 seconds</p>
+                      <div className="mt-2 text-left">
+                        {isSubscribed ? (
+                          <span className="text-xs font-bold text-[#00d4ff]">Unlimited</span>
+                        ) : (
+                          <span className="text-sm font-bold">{CREDIT_COSTS.fast} credit</span>
+                        )}
+                      </div>
+                    </motion.button>
+
+                    {/* High Quality Mode */}
+                    <motion.button
+                      onClick={() => setQualityMode('high')}
+                      className={`
+                        relative p-4 rounded-xl border-3 transition-all
+                        ${qualityMode === 'high'
+                          ? 'border-[#ff61d2] bg-[#ff61d2]/10 shadow-[3px_3px_0_0_#ff61d2]'
+                          : 'border-[#181016] bg-white hover:bg-gray-50 shadow-[3px_3px_0_0_#181016]'
+                        }
+                      `}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                    >
+                      <div className="absolute -top-2 -right-2 bg-[#ff61d2] text-white text-xs font-bold px-2 py-0.5 rounded-full border-2 border-[#181016]">
+                        PRO
+                      </div>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Crown className="w-5 h-5 text-[#ff61d2]" />
+                          <span className="font-bold">High Quality</span>
+                        </div>
+                        {qualityMode === 'high' && (
+                          <div className="w-5 h-5 bg-[#ff61d2] rounded-full flex items-center justify-center">
+                            <Check className="w-3 h-3 text-white" />
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-[#181016]/60 text-left">~2 minutes • Better details</p>
+                      <div className="mt-2 text-left">
+                        {isSubscribed ? (
+                          <span className="text-xs font-bold text-[#ff61d2]">{dailyHighRemaining}/5 today</span>
+                        ) : (
+                          <span className="text-sm font-bold">{CREDIT_COSTS.high} credits</span>
+                        )}
+                      </div>
+                    </motion.button>
+                  </div>
+                </div>
+
                 {/* Continue Button */}
                 <div className="mt-auto">
                   <NeoButton
                     variant="primary"
                     size="lg"
                     onClick={handleContinue}
-                    disabled={!isReadyToContinue || isSubmitting}
+                    disabled={!isReadyToContinue || isSubmitting || !canAfford()}
                     icon={<ArrowRight className="w-6 h-6" />}
                     iconPosition="right"
-                    pulse={isReadyToContinue && !isSubmitting}
+                    pulse={isReadyToContinue && !isSubmitting && canAfford()}
                   >
-                    {isSubmitting ? 'Starting Magic...' : 'Make It Move!'}
+                    {isSubmitting ? 'Starting Magic...' : !canAfford() ? 'Need More Credits' : 'Make It Move!'}
                   </NeoButton>
 
-                  {/* Selection feedback */}
-                  <AnimatePresence>
-                    {isReadyToContinue && !isSubmitting && (
+                  {/* Credit/subscription info */}
+                  <div className="text-center mt-4">
+                    {!canAfford() ? (
+                      <p className="text-red-500 font-medium">
+                        {isSubscribed && qualityMode === 'high'
+                          ? "You've used all 5 High Quality videos today"
+                          : `Not enough credits (need ${getCreditCost()})`
+                        }
+                      </p>
+                    ) : isReadyToContinue && !isSubmitting ? (
                       <motion.p
-                        className="text-center mt-4 text-[#181016]/70 font-medium"
+                        className="text-[#181016]/70 font-medium"
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                       >
                         {showCustomInput
                           ? `Custom: "${customPrompt.slice(0, 30)}${customPrompt.length > 30 ? '...' : ''}"`
-                          : `Selected: ${ACTION_OPTIONS.find(a => a.id === selectedAction)?.emoji} ${ACTION_OPTIONS.find(a => a.id === selectedAction)?.label}`
+                          : `${ACTION_OPTIONS.find(a => a.id === selectedAction)?.emoji} ${ACTION_OPTIONS.find(a => a.id === selectedAction)?.label}`
                         }
+                        {' • '}
+                        {qualityMode === 'high' ? (
+                          <span className="text-[#ff61d2]">High Quality</span>
+                        ) : (
+                          <span className="text-[#00d4ff]">Fast</span>
+                        )}
                       </motion.p>
-                    )}
-                  </AnimatePresence>
+                    ) : null}
+                  </div>
                 </div>
               </div>
             </div>
@@ -326,3 +487,18 @@ export default function ChooseActionPage() {
   );
 }
 
+function LoadingState() {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-[#00d4ff] via-[#00b8e6] to-[#0099cc] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+export default function ChooseActionPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <ChooseActionContent />
+    </Suspense>
+  );
+}

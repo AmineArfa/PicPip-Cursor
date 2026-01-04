@@ -6,6 +6,12 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+// Video format types for different platforms
+export type VideoFormat = 'tiktok' | 'instagram_reel' | 'instagram_square' | 'instagram_portrait' | 'landscape';
+
+// Quality mode types
+export type QualityMode = 'fast' | 'high';
+
 export type Database = {
   public: {
     Tables: {
@@ -17,6 +23,8 @@ export type Database = {
           subscription_status: 'none' | 'trial' | 'active' | 'cancelled';
           stripe_customer_id: string | null;
           is_admin: boolean;
+          high_quality_count_today: number;
+          high_quality_reset_date: string;
           created_at: string;
         };
         Insert: {
@@ -26,6 +34,8 @@ export type Database = {
           subscription_status?: 'none' | 'trial' | 'active' | 'cancelled';
           stripe_customer_id?: string | null;
           is_admin?: boolean;
+          high_quality_count_today?: number;
+          high_quality_reset_date?: string;
           created_at?: string;
         };
         Update: {
@@ -35,6 +45,8 @@ export type Database = {
           subscription_status?: 'none' | 'trial' | 'active' | 'cancelled';
           stripe_customer_id?: string | null;
           is_admin?: boolean;
+          high_quality_count_today?: number;
+          high_quality_reset_date?: string;
           created_at?: string;
         };
       };
@@ -51,6 +63,12 @@ export type Database = {
           status: 'pending' | 'processing' | 'completed' | 'failed';
           is_paid: boolean;
           runway_job_id: string | null;
+          quality_mode: 'fast' | 'high';
+          format: VideoFormat;
+          duration: 5 | 10;
+          prompt_text: string | null;
+          ai_enhanced_prompt: string | null;
+          credits_used: number;
           created_at: string;
         };
         Insert: {
@@ -65,6 +83,12 @@ export type Database = {
           status?: 'pending' | 'processing' | 'completed' | 'failed';
           is_paid?: boolean;
           runway_job_id?: string | null;
+          quality_mode?: 'fast' | 'high';
+          format?: VideoFormat;
+          duration?: 5 | 10;
+          prompt_text?: string | null;
+          ai_enhanced_prompt?: string | null;
+          credits_used?: number;
           created_at?: string;
         };
         Update: {
@@ -79,6 +103,12 @@ export type Database = {
           status?: 'pending' | 'processing' | 'completed' | 'failed';
           is_paid?: boolean;
           runway_job_id?: string | null;
+          quality_mode?: 'fast' | 'high';
+          format?: VideoFormat;
+          duration?: 5 | 10;
+          prompt_text?: string | null;
+          ai_enhanced_prompt?: string | null;
+          credits_used?: number;
           created_at?: string;
         };
       };
@@ -217,6 +247,8 @@ export type Database = {
       ticket_status: 'open' | 'in_progress' | 'resolved' | 'closed';
       sender_type: 'user' | 'admin';
       deletion_request_status: 'pending' | 'processing' | 'completed' | 'failed';
+      quality_mode: 'fast' | 'high';
+      video_format: 'tiktok' | 'instagram_reel' | 'instagram_square' | 'instagram_portrait' | 'landscape';
     };
   };
 };

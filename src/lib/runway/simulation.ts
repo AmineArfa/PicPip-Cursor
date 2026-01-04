@@ -2,6 +2,8 @@
 // Used when RUNWAY_API_KEY is not set
 
 import type { RunwayJobRequest, RunwayJobResponse } from './index';
+import { QUALITY_CONFIG } from './index';
+import type { QualityMode } from '@/lib/supabase/types';
 
 const DEMO_VIDEOS = [
   'https://res.cloudinary.com/demo/video/upload/dog.mp4',
@@ -15,23 +17,30 @@ const simulatedJobs = new Map<string, {
   createdAt: string;
   output?: string[];
   completionTime: number;
+  qualityMode: QualityMode;
 }>();
 
 export class SimulatedRunwayClient {
   async createImageToVideoJob(request: RunwayJobRequest): Promise<RunwayJobResponse> {
-    const jobId = `sim_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const jobId = `sim_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
     const createdAt = new Date().toISOString();
+    const qualityMode = request.qualityMode || 'fast';
     
-    // Simulate 10-15 seconds processing time
-    const processingTime = 10000 + Math.random() * 5000;
+    // Simulate processing time based on quality mode
+    // Fast: 10-15 seconds, High: 20-30 seconds (simulated, real is much longer)
+    const baseTime = qualityMode === 'high' ? 20000 : 10000;
+    const randomExtra = Math.random() * (qualityMode === 'high' ? 10000 : 5000);
+    const processingTime = baseTime + randomExtra;
     
     simulatedJobs.set(jobId, {
       status: 'PENDING',
       createdAt,
       completionTime: Date.now() + processingTime,
+      qualityMode,
     });
 
-    console.log(`[Runway Simulation] Created job ${jobId} - will complete in ${Math.round(processingTime / 1000)}s`);
+    console.log(`[Runway Simulation] Created ${qualityMode} job ${jobId} - will complete in ${Math.round(processingTime / 1000)}s`);
+    console.log(`[Runway Simulation] Format: ${request.format || 'default'}, Ratio: ${request.ratio || 'auto'}`);
 
     return {
       id: jobId,
@@ -60,7 +69,7 @@ export class SimulatedRunwayClient {
       job.status = 'RUNNING';
     }
 
-    console.log(`[Runway Simulation] Job ${taskId} status: ${job.status}`);
+    console.log(`[Runway Simulation] Job ${taskId} status: ${job.status} (${job.qualityMode} mode)`);
 
     return {
       id: taskId,
@@ -78,6 +87,10 @@ export class SimulatedRunwayClient {
       console.log(`[Runway Simulation] Cancelled job ${taskId}`);
     }
   }
+
+  isSimulationMode(): boolean {
+    return true;
+  }
 }
 
 // Get appropriate client based on environment
@@ -89,10 +102,7 @@ export function getRunwayClientWithFallback() {
     return new SimulatedRunwayClient();
   }
   
-  // Use real client
+  // Use real client - dynamic import to avoid circular dependency
   const { RunwayClient } = require('./index');
   return new RunwayClient(apiKey);
 }
-
-
-

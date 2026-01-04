@@ -1,14 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Star, Users, Check, Sparkles, ArrowRight } from 'lucide-react';
+import { Star, Package, Check, Sparkles, Zap, Crown, ArrowRight } from 'lucide-react';
 import { Header } from '@/components/header';
 import { Footer } from '@/components/footer';
 import { DotPattern, NeoButton, NeoCard } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
-import { useEffect } from 'react';
 import type { Profile } from '@/lib/supabase/types';
 
 type PlanType = 'single' | 'bundle' | 'subscription';
@@ -19,52 +18,55 @@ const PLANS = {
     subtitle: '7 days free, then $9.99/month',
     price: 'Free',
     priceSuperscript: '+',
-    description: 'Unlimited Animations',
+    description: 'Start with 7-day trial',
     buttonText: 'Start Free Trial',
     variant: 'primary' as const,
     badge: { text: 'Best Value', icon: <Star className="w-4 h-4" /> },
     productType: 'subscription' as const,
     features: [
-      'Unlimited photo animations',
-      'HD video downloads',
-      'No watermarks',
-      'Cancel anytime',
-      '7-day free trial',
+      { text: 'Unlimited Fast videos', highlight: true },
+      { text: '5 High Quality videos/day', highlight: true },
+      { text: 'All video formats (TikTok, Reels, YouTube)', highlight: false },
+      { text: 'HD video downloads', highlight: false },
+      { text: 'No watermarks', highlight: false },
+      { text: 'Cancel anytime', highlight: false },
     ],
   },
   bundle: {
-    name: 'Bundle Pack',
-    subtitle: '10 Photos',
+    name: 'Credit Bundle',
+    subtitle: '20 Credits',
     price: '$19.99',
     priceSuperscript: '',
-    description: 'Save 60% instantly',
+    description: 'Best value for credits',
     buttonText: 'Buy Bundle',
     variant: 'lime' as const,
-    badge: { text: 'Best For Family', icon: <Users className="w-4 h-4" /> },
+    badge: { text: 'Save 60%', icon: <Package className="w-4 h-4" /> },
     productType: 'bundle' as const,
     features: [
-      '10 photo animations',
-      'HD video downloads',
-      'No expiration',
-      'Perfect for families',
-      'Save 60% vs single',
+      { text: '20 credits included', highlight: true },
+      { text: '20 Fast videos OR 10 High Quality', highlight: true },
+      { text: 'All video formats', highlight: false },
+      { text: 'HD video downloads', highlight: false },
+      { text: 'No expiration', highlight: false },
+      { text: 'One-time payment', highlight: false },
     ],
   },
   single: {
-    name: 'Single Snap',
-    subtitle: 'One-time payment',
+    name: 'Starter Pack',
+    subtitle: '2 Credits',
     price: '$4.99',
     priceSuperscript: '',
-    description: 'Single HD Download',
-    buttonText: 'Buy One',
+    description: 'Perfect to try it out',
+    buttonText: 'Get Started',
     variant: 'cyan' as const,
     productType: 'single' as const,
     features: [
-      '1 photo animation',
-      'HD video download',
-      'No watermarks',
-      'Instant access',
-      'One-time payment',
+      { text: '2 credits included', highlight: true },
+      { text: '2 Fast videos OR 1 High Quality', highlight: true },
+      { text: 'All video formats', highlight: false },
+      { text: 'HD video downloads', highlight: false },
+      { text: 'No watermarks', highlight: false },
+      { text: 'One-time payment', highlight: false },
     ],
   },
 };
@@ -168,14 +170,29 @@ export default function PricingPage() {
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-12"
+            className="text-center mb-8"
           >
             <h1 className="font-display text-5xl md:text-6xl font-bold text-[#181016] mb-4">
               Choose Your Plan
             </h1>
-            <p className="text-xl md:text-2xl text-[#181016]/70 max-w-2xl mx-auto">
+            <p className="text-xl md:text-2xl text-[#181016]/70 max-w-2xl mx-auto mb-6">
               Bring your memories to life with our flexible pricing options
             </p>
+            
+            {/* Quality Explainer */}
+            <div className="inline-flex flex-col sm:flex-row items-center gap-4 bg-white/80 backdrop-blur-sm rounded-2xl border-3 border-[#181016] shadow-[4px_4px_0_0_#181016] p-4">
+              <div className="flex items-center gap-2">
+                <Zap className="w-5 h-5 text-[#00d4ff]" />
+                <span className="font-bold">Fast</span>
+                <span className="text-[#181016]/60">= 1 credit</span>
+              </div>
+              <div className="hidden sm:block w-px h-6 bg-[#181016]/20" />
+              <div className="flex items-center gap-2">
+                <Crown className="w-5 h-5 text-[#ff61d2]" />
+                <span className="font-bold">High Quality</span>
+                <span className="text-[#181016]/60">= 2 credits</span>
+              </div>
+            </div>
           </motion.div>
 
           {/* Pricing Cards */}
@@ -225,8 +242,10 @@ export default function PricingPage() {
                       <ul className="flex-1 space-y-3 mb-6">
                         {plan.features.map((feature, index) => (
                           <li key={index} className="flex items-start gap-2">
-                            <Check className="w-5 h-5 text-[#181016] flex-shrink-0 mt-0.5" />
-                            <span className="text-[#181016]/80">{feature}</span>
+                            <Check className={`w-5 h-5 flex-shrink-0 mt-0.5 ${feature.highlight ? 'text-[#ff61d2]' : 'text-[#181016]'}`} />
+                            <span className={feature.highlight ? 'text-[#181016] font-bold' : 'text-[#181016]/80'}>
+                              {feature.text}
+                            </span>
                           </li>
                         ))}
                       </ul>
@@ -250,11 +269,86 @@ export default function PricingPage() {
             })}
           </div>
 
-          {/* Additional Info */}
+          {/* Quality Comparison */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
+            className="bg-white border-4 border-[#181016] rounded-3xl shadow-[6px_6px_0_0_#181016] p-8 mb-12"
+          >
+            <h2 className="font-display text-2xl font-bold text-[#181016] mb-6 text-center">
+              Fast vs. High Quality
+            </h2>
+            <div className="grid md:grid-cols-2 gap-6">
+              {/* Fast */}
+              <div className="bg-[#00d4ff]/10 rounded-2xl p-6 border-3 border-[#00d4ff]">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-[#00d4ff] border-3 border-[#181016] flex items-center justify-center">
+                    <Zap className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xl">Fast Mode</h3>
+                    <p className="text-sm text-[#181016]/60">1 credit per video</p>
+                  </div>
+                </div>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-sm">
+                    <Check className="w-4 h-4 text-[#00d4ff]" />
+                    <span>~30 second generation</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm">
+                    <Check className="w-4 h-4 text-[#00d4ff]" />
+                    <span>Great for quick previews</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm">
+                    <Check className="w-4 h-4 text-[#00d4ff]" />
+                    <span>Good motion quality</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm">
+                    <Check className="w-4 h-4 text-[#00d4ff]" />
+                    <span>Unlimited for subscribers</span>
+                  </li>
+                </ul>
+              </div>
+
+              {/* High Quality */}
+              <div className="bg-[#ff61d2]/10 rounded-2xl p-6 border-3 border-[#ff61d2]">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 rounded-full bg-[#ff61d2] border-3 border-[#181016] flex items-center justify-center">
+                    <Crown className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-xl">High Quality Mode</h3>
+                    <p className="text-sm text-[#181016]/60">2 credits per video</p>
+                  </div>
+                </div>
+                <ul className="space-y-2">
+                  <li className="flex items-center gap-2 text-sm">
+                    <Check className="w-4 h-4 text-[#ff61d2]" />
+                    <span>~2 minute generation</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm">
+                    <Check className="w-4 h-4 text-[#ff61d2]" />
+                    <span>Best for sharing & posting</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm">
+                    <Check className="w-4 h-4 text-[#ff61d2]" />
+                    <span>Enhanced motion & details</span>
+                  </li>
+                  <li className="flex items-center gap-2 text-sm">
+                    <Check className="w-4 h-4 text-[#ff61d2]" />
+                    <span>5/day for subscribers</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Additional Info */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
             className="bg-white border-4 border-[#181016] rounded-3xl shadow-[6px_6px_0_0_#181016] p-8 text-center"
           >
             <h2 className="font-display text-2xl font-bold text-[#181016] mb-4">
@@ -266,21 +360,21 @@ export default function PricingPage() {
                   <Sparkles className="w-8 h-8 text-white" />
                 </div>
                 <h3 className="font-bold text-lg mb-2">HD Quality</h3>
-                <p className="text-[#181016]/70">Crystal clear video animations</p>
+                <p className="text-[#181016]/70">Crystal clear 1080p video</p>
               </div>
               <div>
                 <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-[#a3ff00] border-4 border-[#181016] flex items-center justify-center">
                   <Check className="w-8 h-8 text-[#181016]" />
                 </div>
-                <h3 className="font-bold text-lg mb-2">No Watermarks</h3>
-                <p className="text-[#181016]/70">Clean, professional videos</p>
+                <h3 className="font-bold text-lg mb-2">All Formats</h3>
+                <p className="text-[#181016]/70">TikTok, Reels, YouTube & more</p>
               </div>
               <div>
                 <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-[#00ffff] border-4 border-[#181016] flex items-center justify-center">
                   <ArrowRight className="w-8 h-8 text-[#181016]" />
                 </div>
                 <h3 className="font-bold text-lg mb-2">Instant Access</h3>
-                <p className="text-[#181016]/70">Download immediately after processing</p>
+                <p className="text-[#181016]/70">Download immediately</p>
               </div>
             </div>
           </motion.div>
@@ -290,7 +384,7 @@ export default function PricingPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5 }}
+              transition={{ delay: 0.6 }}
               className="mt-12 text-center"
             >
               <p className="text-lg text-[#181016]/70 mb-4">
@@ -313,4 +407,3 @@ export default function PricingPage() {
     </DotPattern>
   );
 }
-

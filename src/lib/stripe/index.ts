@@ -31,30 +31,40 @@ export const stripe = {
 };
 
 // Product types and prices
+// $4.99 = 2 credits, $19.99 = 20 credits (keeping original Stripe prices)
 export const PRODUCTS = {
   single: {
-    name: 'Single Snap',
-    description: 'One-time HD download for this photo',
+    name: 'Starter Pack',
+    description: '2 credits for photo animations',
     priceId: process.env.STRIPE_PRICE_SINGLE || '',
-    price: 500, // $4.99 in cents
+    price: 499, // $4.99 in cents
     mode: 'payment' as const,
+    credits: 2,
   },
   bundle: {
-    name: 'Bundle Pack',
-    description: '10 photo animations - Save 60%',
+    name: 'Credit Bundle',
+    description: '20 credits - Best value!',
     priceId: process.env.STRIPE_PRICE_BUNDLE || '',
     price: 1999, // $19.99 in cents
     mode: 'payment' as const,
-    credits: 10,
+    credits: 20,
   },
   subscription: {
     name: 'Unlimited Magic',
-    description: '7 days free, then $9.99/month',
+    description: '7 days free, then $9.99/month - Unlimited Fast + 5 High/day',
     priceId: process.env.STRIPE_PRICE_SUBSCRIPTION || '',
     price: 999, // $9.99/mo in cents
     mode: 'subscription' as const,
     trialDays: 7,
+    unlimitedFast: true,
+    dailyHighLimit: 5,
   },
+} as const;
+
+// Credit costs for different quality modes
+export const CREDIT_COSTS = {
+  fast: 1,
+  high: 2,
 } as const;
 
 export type ProductType = keyof typeof PRODUCTS;

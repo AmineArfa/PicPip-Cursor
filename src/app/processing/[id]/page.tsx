@@ -3,20 +3,19 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { AlertTriangle, Star } from 'lucide-react';
+import { AlertTriangle, Star, Zap, Crown, CheckCircle2, Loader2, Sparkles, Camera } from 'lucide-react';
 import { Header } from '@/components/header';
-import { DotPattern } from '@/components/ui';
 import { usePicPipStore } from '@/lib/store';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile } from '@/lib/supabase/types';
 import Image from 'next/image';
 
-const PROCESSING_MESSAGES = [
-  { message: 'Analyzing your photo...', icon: '🔍' },
-  { message: 'Magifying...', icon: '✨' },
-  { message: 'Sprinkling Glitter...', icon: '💫' },
-  { message: 'Adding motion magic...', icon: '🎬' },
-  { message: 'Almost there...', icon: '🌟' },
+// Processing steps with icons
+const PROCESSING_STEPS = [
+  { id: 'analyzing', message: 'Analyzing your photo...', icon: Camera, duration: 3000 },
+  { id: 'enhancing', message: 'Enhancing with AI...', icon: Sparkles, duration: 5000 },
+  { id: 'generating', message: 'Generating video magic...', icon: Zap, duration: 20000 },
+  { id: 'finalizing', message: 'Adding final touches...', icon: Star, duration: 5000 },
 ];
 
 const FUN_FACTS = [
@@ -24,6 +23,7 @@ const FUN_FACTS = [
   'Fun fact: The first animated photo was created in 1878!',
   'Tip: Photos with clear faces work best!',
   'Did you know? PicPip uses AI magic to Bring Your Pictures to Life!',
+  'Tip: High Quality mode produces more detailed motion!',
 ];
 
 export default function ProcessingPage() {
@@ -31,19 +31,21 @@ export default function ProcessingPage() {
   const params = useParams();
   const animationId = params.id as string;
   
-  const [messageIndex, setMessageIndex] = useState(0);
+  const [currentStep, setCurrentStep] = useState(0);
   const [factIndex, setFactIndex] = useState(0);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [credits, setCredits] = useState(0);
+  const [qualityMode, setQualityMode] = useState<'fast' | 'high'>('fast');
+  const [estimatedTime, setEstimatedTime] = useState(30);
   
   const { currentAnimation, setAnimation, setProcessingStatus } = usePicPipStore();
   const [devModeStart] = useState(() => Date.now());
   const [isDevMode, setIsDevMode] = useState(false);
 
-  // Check authentication status
+  // Check authentication status and get animation details
   useEffect(() => {
     const checkAuth = async () => {
       const supabase = createClient();
@@ -51,7 +53,6 @@ export default function ProcessingPage() {
       
       if (user) {
         setIsAuthenticated(true);
-        // Check subscription status and credits
         const { data: profile } = await supabase
           .from('profiles')
           .select('*')
@@ -69,20 +70,38 @@ export default function ProcessingPage() {
     checkAuth();
   }, []);
 
+  // Get animation details for quality mode
+  useEffect(() => {
+    const fetchAnimation = async () => {
+      try {
+        const response = await fetch(`/api/status/${animationId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.quality_mode) {
+            setQualityMode(data.quality_mode);
+            setEstimatedTime(data.quality_mode === 'high' ? 120 : 30);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to fetch animation details:', err);
+      }
+    };
+    fetchAnimation();
+  }, [animationId]);
+
   // Poll for status updates
   const checkStatus = useCallback(async () => {
     try {
       const response = await fetch(`/api/status/${animationId}`);
       const data = await response.json();
       
-      // Handle 404 or error - check if we're in dev mode
       if (!response.ok || data.error) {
-        // In dev mode, simulate completion after 10 seconds
         const elapsed = Date.now() - devModeStart;
-        if (elapsed > 10000) {
+        const simDuration = qualityMode === 'high' ? 15000 : 10000;
+        
+        if (elapsed > simDuration) {
           console.log('[Dev Mode] Simulating animation completion');
           
-          // Create a mock completed animation
           const mockAnimation = {
             id: animationId,
             guest_session_id: null,
@@ -95,6 +114,12 @@ export default function ProcessingPage() {
             title: null,
             is_paid: false,
             status: 'completed' as const,
+            quality_mode: qualityMode,
+            format: 'tiktok' as const,
+            duration: 10 as const,
+            prompt_text: null,
+            ai_enhanced_prompt: null,
+            credits_used: qualityMode === 'high' ? 2 : 1,
             created_at: new Date().toISOString(),
           };
           
@@ -117,37 +142,29 @@ export default function ProcessingPage() {
         setError('Something went wrong. Please try again.');
         setProcessingStatus('error', 'Processing failed');
       } else {
-        // Update progress based on estimated time
         setProgress((prev) => Math.min(prev + 5, 85));
       }
     } catch (err) {
       console.error('Status check error:', err);
-      // In dev mode without backend, simulate progress
       setIsDevMode(true);
       setProgress((prev) => Math.min(prev + 8, 90));
     }
-  }, [animationId, router, setAnimation, setProcessingStatus, devModeStart, currentAnimation]);
+  }, [animationId, router, setAnimation, setProcessingStatus, devModeStart, currentAnimation, qualityMode]);
 
   // Polling effect
   useEffect(() => {
     setProcessingStatus('processing', 'Creating your magic video...');
-    
-    // Initial check
     checkStatus();
-    
-    // Poll every 3 seconds
     const pollInterval = setInterval(checkStatus, 3000);
-    
     return () => clearInterval(pollInterval);
   }, [checkStatus, setProcessingStatus]);
 
-  // Cycle through messages
+  // Cycle through processing steps
   useEffect(() => {
-    const messageInterval = setInterval(() => {
-      setMessageIndex((prev) => (prev + 1) % PROCESSING_MESSAGES.length);
-    }, 4000);
-    
-    return () => clearInterval(messageInterval);
+    const stepInterval = setInterval(() => {
+      setCurrentStep((prev) => Math.min(prev + 1, PROCESSING_STEPS.length - 1));
+    }, 8000);
+    return () => clearInterval(stepInterval);
   }, []);
 
   // Cycle through fun facts
@@ -155,7 +172,6 @@ export default function ProcessingPage() {
     const factInterval = setInterval(() => {
       setFactIndex((prev) => (prev + 1) % FUN_FACTS.length);
     }, 8000);
-    
     return () => clearInterval(factInterval);
   }, []);
 
@@ -167,15 +183,13 @@ export default function ProcessingPage() {
         return prev + Math.random() * 3;
       });
     }, 500);
-    
     return () => clearInterval(progressInterval);
   }, []);
 
-  const currentMessage = PROCESSING_MESSAGES[messageIndex];
   const currentFact = FUN_FACTS[factIndex];
 
   return (
-    <div className="min-h-screen bg-[#a855f7] flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-[#a855f7] via-[#9333ea] to-[#7c3aed] flex flex-col">
       <Header variant="default" isAuthenticated={isAuthenticated} isSubscribed={isSubscribed} credits={credits} />
       
       <main className="flex-1 flex flex-col items-center justify-center p-4 relative overflow-hidden">
@@ -196,16 +210,31 @@ export default function ProcessingPage() {
 
         {/* Main Content */}
         <div className="w-full max-w-4xl mx-auto text-center z-10">
-          {/* Title */}
-          <motion.h1
-            className="font-display text-4xl md:text-5xl font-bold text-white mb-8 drop-shadow-lg"
+          {/* Title with quality badge */}
+          <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
+            className="mb-8"
           >
-            Pip is making your magic...
-            <br />
-            stay right here!
-          </motion.h1>
+            <h1 className="font-display text-4xl md:text-5xl font-bold text-white mb-4 drop-shadow-lg">
+              Pip is making your magic...
+            </h1>
+            <div className="inline-flex items-center gap-2 bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full">
+              {qualityMode === 'high' ? (
+                <>
+                  <Crown className="w-5 h-5 text-[#ff61d2]" />
+                  <span className="text-white font-bold">High Quality Mode</span>
+                  <span className="text-white/70">• ~{Math.ceil(estimatedTime / 60)} min</span>
+                </>
+              ) : (
+                <>
+                  <Zap className="w-5 h-5 text-[#00d4ff]" />
+                  <span className="text-white font-bold">Fast Mode</span>
+                  <span className="text-white/70">• ~{estimatedTime}s</span>
+                </>
+              )}
+            </div>
+          </motion.div>
 
           {/* Processing Card */}
           <motion.div
@@ -215,7 +244,7 @@ export default function ProcessingPage() {
           >
             <div className="flex flex-col md:flex-row gap-6 items-center">
               {/* Image Preview */}
-              <div className="relative w-full md:w-1/2 aspect-[4/5] bg-gray-100 rounded-2xl overflow-hidden border-4 border-[#181016]">
+              <div className="relative w-full md:w-1/2 aspect-[9/16] max-h-[300px] bg-gray-100 rounded-2xl overflow-hidden border-4 border-[#181016]">
                 {currentAnimation?.original_photo_url ? (
                   <Image
                     src={currentAnimation.original_photo_url}
@@ -231,74 +260,107 @@ export default function ProcessingPage() {
                 
                 {/* Processing overlay */}
                 <motion.div
-                  className="absolute inset-0 bg-white/80 flex items-center justify-center"
-                  animate={{ opacity: [0.5, 0.8, 0.5] }}
+                  className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end justify-center pb-4"
+                  animate={{ opacity: [0.8, 1, 0.8] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >
                   <div className="bg-white rounded-full px-4 py-2 border-2 border-[#181016] shadow-md flex items-center gap-2">
-                    <motion.span
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                      className="text-[#ff61d2]"
-                    >
-                      ⚙️
-                    </motion.span>
-                    <span className="font-bold text-sm">{currentMessage.message}</span>
+                    <Loader2 className="w-4 h-4 text-[#ff61d2] animate-spin" />
+                    <span className="font-bold text-sm">Processing...</span>
                   </div>
                 </motion.div>
               </div>
 
               {/* Progress Section */}
-              <div className="w-full md:w-1/2 space-y-6">
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={messageIndex}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -20 }}
-                    className="text-left"
-                  >
-                    <h3 className="text-xl font-bold text-[#181016] flex items-center gap-2">
-                      <span>{currentMessage.icon}</span>
-                      {currentMessage.message}
-                    </h3>
-                  </motion.div>
-                </AnimatePresence>
+              <div className="w-full md:w-1/2 space-y-4">
+                {/* Processing Steps */}
+                <div className="space-y-3">
+                  {PROCESSING_STEPS.map((step, index) => {
+                    const StepIcon = step.icon;
+                    const isActive = index === currentStep;
+                    const isComplete = index < currentStep;
+                    
+                    return (
+                      <motion.div
+                        key={step.id}
+                        className={`flex items-center gap-3 p-3 rounded-xl transition-all ${
+                          isActive 
+                            ? 'bg-[#ff61d2]/10 border-2 border-[#ff61d2]' 
+                            : isComplete 
+                            ? 'bg-green-50 border-2 border-green-300'
+                            : 'bg-gray-50 border-2 border-gray-200'
+                        }`}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                      >
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          isActive 
+                            ? 'bg-[#ff61d2]' 
+                            : isComplete 
+                            ? 'bg-green-500'
+                            : 'bg-gray-200'
+                        }`}>
+                          {isComplete ? (
+                            <CheckCircle2 className="w-5 h-5 text-white" />
+                          ) : isActive ? (
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                            >
+                              <StepIcon className="w-5 h-5 text-white" />
+                            </motion.div>
+                          ) : (
+                            <StepIcon className="w-5 h-5 text-gray-400" />
+                          )}
+                        </div>
+                        <span className={`font-medium text-sm ${
+                          isActive ? 'text-[#ff61d2]' : isComplete ? 'text-green-600' : 'text-gray-400'
+                        }`}>
+                          {step.message}
+                        </span>
+                      </motion.div>
+                    );
+                  })}
+                </div>
 
                 {/* Progress Bar */}
-                <div className="w-full h-4 bg-gray-200 rounded-full border-2 border-[#181016] overflow-hidden">
+                <div className="w-full h-3 bg-gray-200 rounded-full border-2 border-[#181016] overflow-hidden">
                   <motion.div
-                    className="h-full bg-gradient-to-r from-orange-400 to-orange-500"
+                    className={`h-full ${qualityMode === 'high' ? 'bg-gradient-to-r from-[#ff61d2] to-[#ff8ad8]' : 'bg-gradient-to-r from-[#00d4ff] to-[#00f0ff]'}`}
                     initial={{ width: 0 }}
                     animate={{ width: `${progress}%` }}
                     transition={{ duration: 0.5 }}
                   />
                 </div>
-
-                {/* Fun Fact */}
-                <AnimatePresence mode="wait">
-                  <motion.div
-                    key={factIndex}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
-                    className="bg-blue-50 rounded-xl p-4 border-2 border-blue-200"
-                  >
-                    <div className="flex items-start gap-2">
-                      <span className="text-blue-500">ℹ️</span>
-                      <p className="text-sm font-medium text-blue-800">{currentFact}</p>
-                    </div>
-                  </motion.div>
-                </AnimatePresence>
+                <p className="text-xs text-[#181016]/60 text-center">
+                  {Math.round(progress)}% complete
+                </p>
                 
                 {/* Dev Mode Indicator */}
                 {isDevMode && (
                   <div className="text-xs text-gray-400 text-center">
-                    🧪 Demo Mode - No backend configured
+                    🧪 Demo Mode
                   </div>
                 )}
               </div>
             </div>
+
+            {/* Fun Fact */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={factIndex}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mt-6 bg-blue-50 rounded-xl p-4 border-2 border-blue-200"
+              >
+                <div className="flex items-start gap-2">
+                  <span className="text-blue-500">💡</span>
+                  <p className="text-sm font-medium text-blue-800">{currentFact}</p>
+                </div>
+              </motion.div>
+            </AnimatePresence>
 
             {/* Error State */}
             {error && (
@@ -321,7 +383,7 @@ export default function ProcessingPage() {
             transition={{ delay: 0.3 }}
           >
             <div className="flex items-center gap-3">
-              <span className="text-2xl">⚠️</span>
+              <span className="text-2xl">⏳</span>
               <p className="font-bold text-[#181016]">
                 Please keep this window open until the magic is done.
               </p>
@@ -347,4 +409,3 @@ export default function ProcessingPage() {
     </div>
   );
 }
-

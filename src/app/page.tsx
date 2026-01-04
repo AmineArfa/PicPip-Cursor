@@ -186,8 +186,8 @@ function HomeContent() {
       // Store animation data
       setAnimation(data.animation);
       
-      // Navigate to choose action page (intermediary step)
-      router.push(`/choose-action/${data.animation.id}`);
+      // Navigate to choose format page first (new step in the flow)
+      router.push(`/choose-format/${data.animation.id}`);
     } catch (err) {
       console.error('Upload error:', err);
       setError(err instanceof Error ? err.message : 'Failed to upload photo');
