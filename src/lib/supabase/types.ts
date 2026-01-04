@@ -172,6 +172,41 @@ export type Database = {
           created_at?: string;
         };
       };
+      data_deletion_requests: {
+        Row: {
+          id: string;
+          confirmation_code: string;
+          facebook_user_id: string;
+          status: 'pending' | 'processing' | 'completed' | 'failed';
+          requested_at: string;
+          processed_at: string | null;
+          completed_at: string | null;
+          notes: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          confirmation_code: string;
+          facebook_user_id: string;
+          status?: 'pending' | 'processing' | 'completed' | 'failed';
+          requested_at?: string;
+          processed_at?: string | null;
+          completed_at?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          confirmation_code?: string;
+          facebook_user_id?: string;
+          status?: 'pending' | 'processing' | 'completed' | 'failed';
+          requested_at?: string;
+          processed_at?: string | null;
+          completed_at?: string | null;
+          notes?: string | null;
+          created_at?: string;
+        };
+      };
     };
     Views: Record<string, never>;
     Functions: Record<string, never>;
@@ -181,6 +216,7 @@ export type Database = {
       product_type: 'single' | 'bundle' | 'subscription';
       ticket_status: 'open' | 'in_progress' | 'resolved' | 'closed';
       sender_type: 'user' | 'admin';
+      deletion_request_status: 'pending' | 'processing' | 'completed' | 'failed';
     };
   };
 };
@@ -197,4 +233,6 @@ export type AnimationUpdate = Database['public']['Tables']['animations']['Update
 export type SupportTicketInsert = Database['public']['Tables']['support_tickets']['Insert'];
 export type SupportTicketUpdate = Database['public']['Tables']['support_tickets']['Update'];
 export type SupportMessageInsert = Database['public']['Tables']['support_messages']['Insert'];
+export type DataDeletionRequest = Database['public']['Tables']['data_deletion_requests']['Row'];
+export type DataDeletionRequestInsert = Database['public']['Tables']['data_deletion_requests']['Insert'];
 
