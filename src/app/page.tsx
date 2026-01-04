@@ -206,6 +206,21 @@ export default function HomePage() {
     }
   }, []);
 
+  if (isLoadingAuth || purchaseParam) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-[#E8F4FD] to-[#D4E9F7] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-[#ff61d2] border-t-transparent rounded-full animate-spin" />
+          {purchaseParam && (
+            <p className="font-display font-bold text-[#181016]/60 animate-pulse">
+              Preparing your checkout...
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <DotPattern className="flex flex-col min-h-screen overflow-hidden">
       <Header 
