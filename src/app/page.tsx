@@ -275,18 +275,3 @@ export default function HomePage() {
     </DotPattern>
   );
 }
-
-      {/* Decorative Wavy Lines */}
-      <div className="absolute bottom-0 left-0 w-full h-12 opacity-20 pointer-events-none overflow-hidden">
-        <svg className="w-full h-full" preserveAspectRatio="none" viewBox="0 0 1200 40">
-          <path
-            d="M0 20 Q 150 0, 300 20 T 600 20 T 900 20 T 1200 20"
-            stroke="#2962ff"
-            strokeWidth="4"
-            fill="none"
-          />
-        </svg>
-      </div>
-    </DotPattern>
-  );
-}
