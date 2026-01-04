@@ -37,6 +37,21 @@ export async function POST(request: NextRequest) {
     const origin = request.nextUrl.origin;
     const baseUrl = origin || process.env.NEXT_PUBLIC_APP_URL || 'https://picpip.co';
 
+    // Check if user is logged in and get their ID
+    let userId: string | undefined;
+    let isLoggedIn = false;
+    try {
+      const supabase = await createServerSupabaseClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        userId = user.id;
+        isLoggedIn = true;
+      }
+    } catch (e) {
+      // User might not be logged in (guest checkout)
+      console.log('No user session for checkout');
+    }
+
     // Determine success and cancel URLs based on product type
     let successUrl: string;
     let cancelUrl: string;
@@ -49,7 +64,9 @@ export async function POST(request: NextRequest) {
       cancelUrl = `${baseUrl}/pricing`;
     } else {
       // For single/bundle tied to an animation, redirect to celebration page
-      successUrl = `${baseUrl}/celebration/${animationId}?session_id={CHECKOUT_SESSION_ID}`;
+      // Include email for account creation prompt if guest user
+      const emailParam = !isLoggedIn ? `&email=${encodeURIComponent(customerEmail)}&create_account=true` : '';
+      successUrl = `${baseUrl}/celebration/${animationId}?session_id={CHECKOUT_SESSION_ID}${emailParam}`;
       cancelUrl = `${baseUrl}/checkout/${animationId}`;
     }
 
@@ -60,6 +77,7 @@ export async function POST(request: NextRequest) {
         customerEmail,
         animationId: animationId || 'pricing-page',
         guestSessionId: guestSessionId || '',
+        userId: userId || '',
         successUrl,
         cancelUrl,
       });

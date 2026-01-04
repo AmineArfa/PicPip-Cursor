@@ -8,47 +8,78 @@ export const runtime = 'nodejs';
 
 async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
   console.log('[Stripe Webhook] Processing checkout complete:', session.id);
-  console.log('[Stripe Webhook] Metadata:', session.metadata);
+  console.log('[Stripe Webhook] Metadata:', JSON.stringify(session.metadata));
   console.log('[Stripe Webhook] Customer email:', session.customer_email);
+  console.log('[Stripe Webhook] Payment status:', session.payment_status);
   
-  const { animationId, guestSessionId, productType } = session.metadata || {};
+  const { animationId, guestSessionId, productType, userId: metadataUserId } = session.metadata || {};
   const customerId = typeof session.customer === 'string' 
     ? session.customer 
     : session.customer?.id;
   const customerEmail = session.customer_email;
-
-  if (!customerEmail) {
-    console.error('[Stripe Webhook] No customer email in session');
-    return;
-  }
 
   // animationId is optional for bundle/credits-only purchases
   const isRealAnimation = animationId && !['pricing-page', 'credits-only', 'bundle-only'].includes(animationId);
 
   const supabase = await createServiceRoleClient();
 
-  // Check if user exists with this email
-  const { data: existingUsers, error: lookupError } = await supabase
-    .from('profiles')
-    .select('id, credits')
-    .eq('email', customerEmail)
-    .limit(1);
-
-  if (lookupError) {
-    console.error('[Stripe Webhook] Error looking up user by email:', lookupError);
-  }
-
-  console.log('[Stripe Webhook] Found users by email:', existingUsers);
-
   let userId: string | null = null;
   let currentCredits = 0;
 
-  if (existingUsers && existingUsers.length > 0) {
-    userId = existingUsers[0].id;
-    currentCredits = existingUsers[0].credits || 0;
-    console.log(`[Stripe Webhook] Found user ${userId} with ${currentCredits} credits`);
-  } else {
-    console.log('[Stripe Webhook] No user found with email:', customerEmail);
+  // First, try to use the userId from metadata (most reliable)
+  if (metadataUserId) {
+    console.log('[Stripe Webhook] Looking up user by metadata userId:', metadataUserId);
+    const { data: userById, error: userByIdError } = await supabase
+      .from('profiles')
+      .select('id, credits, email')
+      .eq('id', metadataUserId)
+      .single();
+
+    if (userByIdError) {
+      console.error('[Stripe Webhook] Error looking up by userId:', userByIdError);
+    } else if (userById) {
+      userId = userById.id;
+      currentCredits = userById.credits || 0;
+      console.log(`[Stripe Webhook] Found user by metadata ID: ${userId} with ${currentCredits} credits`);
+    }
+  }
+
+  // Fallback: try to find user by email (case-insensitive)
+  if (!userId && customerEmail) {
+    console.log('[Stripe Webhook] Looking up user by email:', customerEmail);
+    const { data: existingUsers, error: lookupError } = await supabase
+      .from('profiles')
+      .select('id, credits, email')
+      .ilike('email', customerEmail)
+      .limit(1);
+
+    if (lookupError) {
+      console.error('[Stripe Webhook] Error looking up user by email:', lookupError);
+    } else if (existingUsers && existingUsers.length > 0) {
+      userId = existingUsers[0].id;
+      currentCredits = existingUsers[0].credits || 0;
+      console.log(`[Stripe Webhook] Found user by email: ${userId} with ${currentCredits} credits`);
+    }
+  }
+
+  // Fallback: try to find by Stripe customer ID
+  if (!userId && customerId) {
+    console.log('[Stripe Webhook] Looking up user by Stripe customer ID:', customerId);
+    const { data: userByStripe } = await supabase
+      .from('profiles')
+      .select('id, credits, email')
+      .eq('stripe_customer_id', customerId)
+      .limit(1);
+    
+    if (userByStripe && userByStripe.length > 0) {
+      userId = userByStripe[0].id;
+      currentCredits = userByStripe[0].credits || 0;
+      console.log(`[Stripe Webhook] Found user by Stripe customer ID: ${userId}`);
+    }
+  }
+
+  if (!userId) {
+    console.log('[Stripe Webhook] No user found - cannot process credits. Email:', customerEmail, 'MetadataUserId:', metadataUserId);
   }
 
   // Update animation as paid if it's a real animation ID
@@ -109,17 +140,20 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
     }
 
     if (Object.keys(profileUpdate).length > 0) {
-      const { error: updateError } = await supabase
+      const { error: updateError, data: updatedData } = await supabase
         .from('profiles')
         .update(profileUpdate)
-        .eq('id', userId);
+        .eq('id', userId)
+        .select();
 
       if (updateError) {
         console.error('[Stripe Webhook] Error updating profile:', updateError);
       } else {
-        console.log('[Stripe Webhook] Profile updated successfully:', profileUpdate);
+        console.log('[Stripe Webhook] Profile updated successfully:', JSON.stringify(updatedData));
       }
     }
+  } else {
+    console.log('[Stripe Webhook] No user found - cannot award credits. Customer email:', customerEmail);
   }
 
   // If we have a guest session but no user yet, 
@@ -128,7 +162,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
     console.log('[Stripe Webhook] Guest purchase - awaiting auth:', { guestSessionId, animationId, customerEmail });
   }
 
-  console.log('[Stripe Webhook] Checkout complete:', { animationId, productType, userId, customerEmail });
+  console.log('[Stripe Webhook] Checkout complete:', { animationId, productType, userId, customerEmail, creditsAwarded: productType === 'bundle' ? 10 : productType === 'single' ? 1 : 0 });
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {

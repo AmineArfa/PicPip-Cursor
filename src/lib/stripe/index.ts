@@ -65,6 +65,7 @@ export interface CreateCheckoutParams {
   customerEmail: string;
   animationId: string;
   guestSessionId: string;
+  userId?: string;
   successUrl: string;
   cancelUrl: string;
 }
@@ -87,6 +88,8 @@ export async function createCheckoutSession(params: CreateCheckoutParams) {
       animationId: params.animationId,
       guestSessionId: params.guestSessionId,
       productType: params.productType,
+      userId: params.userId || '',
+      customerEmail: params.customerEmail,
     },
     line_items: [
       {
@@ -105,6 +108,7 @@ export async function createCheckoutSession(params: CreateCheckoutParams) {
       metadata: {
         animationId: params.animationId,
         guestSessionId: params.guestSessionId,
+        userId: params.userId,
       },
     };
   }

@@ -49,6 +49,7 @@ export function AccountContent({ user, profile: initialProfile, stats }: Account
         // If we have a session ID, verify it with Stripe to ensure credits are awarded
         if (sessionId) {
           try {
+            console.log('Verifying checkout session:', sessionId);
             const response = await fetch('/api/checkout/verify', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -58,21 +59,35 @@ export function AccountContent({ user, profile: initialProfile, stats }: Account
             if (response.ok) {
               const data = await response.json();
               console.log('Checkout verified:', data);
+              
+              // If verify returned credits, update immediately
+              if (data.credits !== undefined && profile) {
+                setProfile({ ...profile, credits: data.credits });
+              }
+            } else {
+              const errorData = await response.json().catch(() => ({}));
+              console.error('Verify failed:', errorData);
             }
           } catch (err) {
             console.error('Failed to verify checkout:', err);
           }
         }
         
+        // Small delay to ensure DB is updated
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         // Refresh profile data to get new credits
         const supabase = createClient();
-        const { data: newProfile } = await supabase
+        const { data: newProfile, error } = await supabase
           .from('profiles')
           .select('*')
           .eq('id', user.id)
           .single();
         
-        if (newProfile) {
+        if (error) {
+          console.error('Failed to refresh profile:', error);
+        } else if (newProfile) {
+          console.log('Refreshed profile:', newProfile);
           setProfile(newProfile as Profile);
         }
         
