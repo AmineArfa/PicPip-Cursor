@@ -7,6 +7,7 @@ import { Header } from '@/components/header';
 import { NeoButton, NeoInput } from '@/components/ui';
 import { PipMascot } from '@/components/pip-mascot';
 import { createClient } from '@/lib/supabase/client';
+import type { Profile } from '@/lib/supabase/types';
 
 export default function HelpPage() {
   const [email, setEmail] = useState('');
@@ -33,9 +34,10 @@ export default function HelpPage() {
           .eq('id', user.id)
           .single();
         
-        if (profile) {
-          setIsSubscribed(profile.subscription_status === 'active' || profile.subscription_status === 'trial');
-          setCredits(profile.credits || 0);
+        const typedProfile = profile as Profile | null;
+        if (typedProfile) {
+          setIsSubscribed(typedProfile.subscription_status === 'active' || typedProfile.subscription_status === 'trial');
+          setCredits(typedProfile.credits || 0);
         }
       }
     }

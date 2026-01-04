@@ -11,7 +11,7 @@ import { DotPattern, NeoButton } from '@/components/ui';
 import { VideoPlayer } from '@/components/video-player';
 import { PipMascot } from '@/components/pip-mascot';
 import { createClient } from '@/lib/supabase/client';
-import type { Animation } from '@/lib/supabase/types';
+import type { Animation, Profile } from '@/lib/supabase/types';
 
 function CelebrationContent() {
   const router = useRouter();
@@ -62,9 +62,10 @@ function CelebrationContent() {
             .eq('id', user.id)
             .single();
           
-          if (profile) {
-            setIsSubscribed(profile.subscription_status === 'active' || profile.subscription_status === 'trial');
-            setCredits(profile.credits || 0);
+          const typedProfile = profile as Profile | null;
+          if (typedProfile) {
+            setIsSubscribed(typedProfile.subscription_status === 'active' || typedProfile.subscription_status === 'trial');
+            setCredits(typedProfile.credits || 0);
           }
         }
         

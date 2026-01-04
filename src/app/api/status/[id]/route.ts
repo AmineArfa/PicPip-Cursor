@@ -46,7 +46,7 @@ export async function GET(
     const devAnimation = devStore.getAnimation(animationId);
     if (devAnimation) {
       // For dev mode, still apply security - hide video_url if not paid
-      return NextResponse.json(sanitizeAnimation(devAnimation, userId, isSubscribed));
+      return NextResponse.json(sanitizeAnimation(devAnimation as unknown as Record<string, unknown>, userId, isSubscribed));
     }
 
     // Try Supabase

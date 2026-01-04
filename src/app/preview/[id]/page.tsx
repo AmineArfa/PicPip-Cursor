@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Heart, RefreshCw } from 'lucide-react';
+import { Header } from '@/components/header';
 import { DotPattern, NeoButton } from '@/components/ui';
 import { VideoPlayer } from '@/components/video-player';
 import { PipMascot } from '@/components/pip-mascot';

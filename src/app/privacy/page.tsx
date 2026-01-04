@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { Header } from '@/components/header';
 import { DotPattern } from '@/components/ui';
 import { createClient } from '@/lib/supabase/client';
+import type { Profile } from '@/lib/supabase/types';
 
 // Section component for consistent styling
 function PolicySection({ 
@@ -63,9 +64,10 @@ export default function PrivacyPolicyPage() {
           .eq('id', user.id)
           .single();
         
-        if (profile) {
-          setIsSubscribed(profile.subscription_status === 'active' || profile.subscription_status === 'trial');
-          setCredits(profile.credits || 0);
+        const typedProfile = profile as Profile | null;
+        if (typedProfile) {
+          setIsSubscribed(typedProfile.subscription_status === 'active' || typedProfile.subscription_status === 'trial');
+          setCredits(typedProfile.credits || 0);
         }
       }
     }
@@ -74,7 +76,7 @@ export default function PrivacyPolicyPage() {
   }, []);
 
   return (
-    <DotPattern variant="sparse" className="min-h-screen flex flex-col">
+    <DotPattern variant="light" className="min-h-screen flex flex-col">
       <Header 
         isAuthenticated={isAuthenticated} 
         isSubscribed={isSubscribed} 
