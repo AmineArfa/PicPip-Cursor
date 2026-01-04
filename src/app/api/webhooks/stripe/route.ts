@@ -7,6 +7,7 @@ import Stripe from 'stripe';
 export const runtime = 'nodejs';
 
 async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
+  console.log('Processing checkout complete:', session.id, session.metadata);
   const { animationId, guestSessionId, productType } = session.metadata || {};
   const customerId = typeof session.customer === 'string' 
     ? session.customer 
@@ -60,6 +61,13 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
 
   // Update user profile with Stripe customer ID and subscription status
   if (userId && customerId) {
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('credits')
+      .eq('id', userId)
+      .single();
+
+    const currentCredits = profile?.credits || 0;
     const profileUpdate: Record<string, unknown> = {
       stripe_customer_id: customerId,
     };
@@ -68,22 +76,12 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
       profileUpdate.subscription_status = 'trial';
     } else if (productType === 'bundle') {
       // Add 10 credits for bundle purchase
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('id', userId)
-        .single();
-      
-      profileUpdate.credits = (profile?.credits || 0) + 10;
-    } else if (productType === 'single' && !isRealAnimation) {
-      // Add 1 credit for single purchase if not tied to an animation
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('credits')
-        .eq('id', userId)
-        .single();
-      
-      profileUpdate.credits = (profile?.credits || 0) + 1;
+      profileUpdate.credits = currentCredits + 10;
+      console.log(`Awarding 10 credits to user ${userId}. New balance: ${profileUpdate.credits}`);
+    } else if (productType === 'single') {
+      // Award 1 credit for single purchase
+      profileUpdate.credits = currentCredits + 1;
+      console.log(`Awarding 1 credit to user ${userId}. New balance: ${profileUpdate.credits}`);
     }
 
     await supabase
