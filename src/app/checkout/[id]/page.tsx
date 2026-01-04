@@ -85,12 +85,13 @@ function CheckoutContent() {
           .eq('id', user.id)
           .single();
         
-        if (profileData) {
-          setProfile(profileData);
+        const typedProfile = profileData as Profile | null;
+        if (typedProfile) {
+          setProfile(typedProfile);
           // Update global store with user state
-          const isSubscribed = profileData.subscription_status === 'active' || 
-                               profileData.subscription_status === 'trial';
-          setUserState(true, isSubscribed, profileData.credits || 0);
+          const isSubscribed = typedProfile.subscription_status === 'active' || 
+                               typedProfile.subscription_status === 'trial';
+          setUserState(true, isSubscribed, typedProfile.credits || 0);
         }
         setMode('logged_in');
       } else {
