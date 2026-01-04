@@ -10,7 +10,7 @@ import { DotPattern, NeoButton } from '@/components/ui';
 import { VideoPlayer } from '@/components/video-player';
 import { PipMascot } from '@/components/pip-mascot';
 import { createClient } from '@/lib/supabase/client';
-import type { Animation } from '@/lib/supabase/types';
+import type { Database, Animation } from '@/lib/supabase/types';
 
 function CelebrationContent() {
   const router = useRouter();
@@ -102,11 +102,14 @@ function CelebrationContent() {
       }
 
       // Check if we got a session (email confirmation might be disabled)
-      if (data?.session) {
+      if (data?.session && data.user) {
         // Logged in immediately - associate the animation with the user
         const { error: updateError } = await supabase
           .from('animations')
-          .update({ user_id: data.user?.id, guest_session_id: null })
+          .update({ 
+            user_id: data.user.id, 
+            guest_session_id: null 
+          } as Database['public']['Tables']['animations']['Update'])
           .eq('id', animationId);
         
         if (updateError) {
