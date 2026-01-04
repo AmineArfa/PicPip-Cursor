@@ -280,7 +280,7 @@ function CheckoutContent() {
               >
                 {/* Credit Status Card */}
                 <div className="max-w-2xl mx-auto">
-                  <NeoCard variant="white" className="p-6">
+                  <NeoCard variant="default" className="p-6">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-[#ff61d2] border-3 border-[#181016] flex items-center justify-center">
