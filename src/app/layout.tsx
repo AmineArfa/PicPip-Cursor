@@ -142,6 +142,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* Facebook Domain Verification */}
+        <meta name="facebook-domain-verification" content="wjmaw0tmkju0pjpscnzq359c0yzbjx" />
         {/* Structured Data for SEO */}
         <OrganizationSchema />
         <WebSiteSchema />
