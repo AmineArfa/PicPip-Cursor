@@ -121,32 +121,26 @@ export default function PricingPage() {
         return;
       }
 
-      // For subscription, create checkout session directly
-      if (planType === 'subscription') {
-        const response = await fetch('/api/checkout/create-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            productType: 'subscription',
-            customerEmail: user.email,
-            // animationId not required for subscriptions
-          }),
-        });
+      // Create checkout session directly for all plan types
+      const response = await fetch('/api/checkout/create-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          productType: planType,
+          customerEmail: user.email,
+          animationId: 'credits-only', // Special ID for credit-only purchases
+        }),
+      });
 
-        const data = await response.json().catch(() => ({}));
+      const data = await response.json().catch(() => ({}));
 
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to create checkout session');
-        }
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to create checkout session');
+      }
 
-        const { url } = data;
-        if (url) {
-          window.location.href = url;
-        }
-      } else {
-        // For single/bundle, user needs to create an animation first
-        // Redirect to home page to upload a photo
-        router.push('/?purchase=' + planType);
+      const { url } = data;
+      if (url) {
+        window.location.href = url;
       }
     } catch (error) {
       console.error('Checkout error:', error);

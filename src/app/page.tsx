@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, useCallback, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Sparkles, Image as ImageIcon, LogIn, User } from 'lucide-react';
@@ -15,6 +15,7 @@ import type { Profile } from '@/lib/supabase/types';
 
 export default function HomePage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +23,7 @@ export default function HomePage() {
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [credits, setCredits] = useState(0);
   const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   
   const { 
     guestSessionId, 
@@ -29,6 +31,8 @@ export default function HomePage() {
     setProcessingStatus,
     setAnimation 
   } = usePicPipStore();
+
+  const purchaseParam = searchParams.get('purchase');
 
   // Check authentication status and refresh session
   useEffect(() => {
@@ -65,6 +69,7 @@ export default function HomePage() {
         // Refresh the session to extend expiration
         await supabase.auth.refreshSession();
         setIsAuthenticated(true);
+        setUserEmail(session.user.email || null);
 
         // Fetch profile to get credits and subscription status
         const { data: profile } = await supabase
@@ -78,19 +83,32 @@ export default function HomePage() {
           setIsSubscribed(true);
         }
         setCredits(typedProfile?.credits || 0);
+      } else {
+        setIsAuthenticated(false);
+        setUserEmail(null);
+      }
+      
+      setIsLoadingAuth(false);
+    };
+    
+    checkAuth();
+  }, [router]);
 
-        // Handle purchase parameter if present
-        const url = new URL(window.location.href);
-        const purchase = url.searchParams.get('purchase');
-        if (purchase && (purchase === 'bundle' || purchase === 'single' || purchase === 'subscription')) {
+  // Separate effect to handle the purchase parameter
+  useEffect(() => {
+    if (isLoadingAuth) return;
+
+    if (purchaseParam && (purchaseParam === 'bundle' || purchaseParam === 'single' || purchaseParam === 'subscription')) {
+      if (isAuthenticated && userEmail) {
+        const handlePurchaseRedirect = async () => {
           try {
             const response = await fetch('/api/checkout/create-session', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                productType: purchase,
-                customerEmail: session.user.email,
-                animationId: 'credits-only', // Special ID for credit-only purchases
+                productType: purchaseParam,
+                customerEmail: userEmail,
+                animationId: 'credits-only',
               }),
             });
 
@@ -98,29 +116,18 @@ export default function HomePage() {
               const { url: checkoutUrl } = await response.json();
               if (checkoutUrl) {
                 window.location.href = checkoutUrl;
-                return;
               }
             }
           } catch (err) {
             console.error('Failed to create checkout session:', err);
           }
-        }
-      } else {
-        setIsAuthenticated(false);
-        
-        // If not authenticated but purchase param is present, redirect to login
-        const url = new URL(window.location.href);
-        const purchase = url.searchParams.get('purchase');
-        if (purchase && (purchase === 'bundle' || purchase === 'single' || purchase === 'subscription')) {
-          router.push(`/login?redirect=/?purchase=${purchase}`);
-        }
+        };
+        handlePurchaseRedirect();
+      } else if (!isAuthenticated) {
+        router.push(`/login?redirect=/?purchase=${purchaseParam}`);
       }
-      
-      setIsLoadingAuth(false);
-    };
-    
-    checkAuth();
-  }, []);
+    }
+  }, [purchaseParam, isAuthenticated, userEmail, isLoadingAuth, router]);
 
   const handleFileSelect = useCallback(async (files: FileList | null) => {
     if (!files || files.length === 0) return;
