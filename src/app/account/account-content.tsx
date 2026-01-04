@@ -194,7 +194,7 @@ export function AccountContent({ user, profile: initialProfile, stats }: Account
                   <Sparkles className="w-8 h-8 text-[#ff61d2]" />
                 )}
                 <h2 className={`font-display text-2xl font-bold ${isSubscribed ? 'text-white' : 'text-[#181016]'}`}>
-                  {isSubscribed ? 'Unlimited Magic Active' : 'Free Plan'}
+                  {isSubscribed ? 'Unlimited Magic Active' : 'Limited Plan'}
                 </h2>
               </div>
               
