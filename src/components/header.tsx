@@ -1,8 +1,9 @@
 'use client';
 
 import Link from 'next/link';
-import { User, Sparkles, HelpCircle, Menu, X, Zap, Infinity as InfinityIcon } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import Image from 'next/image';
+import { User, HelpCircle, Menu, X, Zap, Infinity as InfinityIcon } from 'lucide-react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { usePicPipStore } from '@/lib/store';
@@ -96,8 +97,14 @@ export function Header({
           href="/"
           className="flex items-center gap-2 sm:gap-3 select-none group"
         >
-          <div className="flex size-9 sm:size-10 items-center justify-center rounded-full bg-[#ff61d2] border-3 sm:border-4 border-[#181016] group-hover:scale-110 transition-transform">
-            <Sparkles className="w-5 h-5 text-white" />
+          <div className="relative size-9 sm:size-10 group-hover:scale-110 transition-transform">
+            <Image
+              src="/picpip_logo.svg"
+              alt="PicPip Logo"
+              fill
+              className="object-contain"
+              priority
+            />
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight text-[#181016] font-display">
             PicPip.co

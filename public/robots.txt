@@ -1,0 +1,24 @@
+# Robots.txt for PicPip.co
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Disallow private/authenticated routes
+Disallow: /api/
+Disallow: /auth/
+Disallow: /admin/
+Disallow: /account/
+Disallow: /memories/
+Disallow: /processing/
+Disallow: /celebration/
+Disallow: /preview/
+Disallow: /checkout/
+Disallow: /choose-action/
+
+# Sitemap location
+Sitemap: https://picpip.co/sitemap.xml
+
+# Crawl-delay for polite crawling
+Crawl-delay: 1
+
