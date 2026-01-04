@@ -72,17 +72,21 @@ function HomeContent() {
         setUserEmail(session.user.email || null);
 
         // Fetch profile to get credits and subscription status
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        const typedProfile = profile as Profile | null;
-        if (typedProfile?.subscription_status === 'active' || typedProfile?.subscription_status === 'trial') {
-          setIsSubscribed(true);
-        }
-        setCredits(typedProfile?.credits || 0);
+        const fetchProfile = async () => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+          
+          const typedProfile = profile as Profile | null;
+          if (typedProfile?.subscription_status === 'active' || typedProfile?.subscription_status === 'trial') {
+            setIsSubscribed(true);
+          }
+          setCredits(typedProfile?.credits || 0);
+        };
+
+        await fetchProfile();
       } else {
         setIsAuthenticated(false);
         setUserEmail(null);

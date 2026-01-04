@@ -7,12 +7,20 @@ import Stripe from 'stripe';
 export const runtime = 'nodejs';
 
 async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
-  console.log('Processing checkout complete:', session.id, session.metadata);
+  console.log('[Stripe Webhook] Processing checkout complete:', session.id);
+  console.log('[Stripe Webhook] Metadata:', session.metadata);
+  console.log('[Stripe Webhook] Customer email:', session.customer_email);
+  
   const { animationId, guestSessionId, productType } = session.metadata || {};
   const customerId = typeof session.customer === 'string' 
     ? session.customer 
     : session.customer?.id;
   const customerEmail = session.customer_email;
+
+  if (!customerEmail) {
+    console.error('[Stripe Webhook] No customer email in session');
+    return;
+  }
 
   // animationId is optional for bundle/credits-only purchases
   const isRealAnimation = animationId && !['pricing-page', 'credits-only', 'bundle-only'].includes(animationId);
@@ -20,16 +28,27 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
   const supabase = await createServiceRoleClient();
 
   // Check if user exists with this email
-  const { data: existingUsers } = await supabase
+  const { data: existingUsers, error: lookupError } = await supabase
     .from('profiles')
-    .select('id')
+    .select('id, credits')
     .eq('email', customerEmail)
     .limit(1);
 
+  if (lookupError) {
+    console.error('[Stripe Webhook] Error looking up user by email:', lookupError);
+  }
+
+  console.log('[Stripe Webhook] Found users by email:', existingUsers);
+
   let userId: string | null = null;
+  let currentCredits = 0;
 
   if (existingUsers && existingUsers.length > 0) {
     userId = existingUsers[0].id;
+    currentCredits = existingUsers[0].credits || 0;
+    console.log(`[Stripe Webhook] Found user ${userId} with ${currentCredits} credits`);
+  } else {
+    console.log('[Stripe Webhook] No user found with email:', customerEmail);
   }
 
   // Update animation as paid if it's a real animation ID
@@ -44,14 +63,18 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
       updateData.guest_session_id = null;
     }
 
-    await supabase
+    const { error: animationError } = await supabase
       .from('animations')
       .update(updateData)
       .eq('id', animationId);
+
+    if (animationError) {
+      console.error('[Stripe Webhook] Error updating animation:', animationError);
+    }
   }
 
   // Create purchase record
-  await supabase.from('purchases').insert({
+  const { error: purchaseError } = await supabase.from('purchases').insert({
     user_id: userId,
     animation_id: isRealAnimation ? animationId : null,
     stripe_session_id: session.id,
@@ -59,44 +82,53 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
     amount: session.amount_total || 0,
   });
 
-  // Update user profile with Stripe customer ID and subscription status
-  if (userId && customerId) {
-    const { data: profile } = await supabase
-      .from('profiles')
-      .select('credits')
-      .eq('id', userId)
-      .single();
+  if (purchaseError) {
+    console.error('[Stripe Webhook] Error creating purchase record:', purchaseError);
+  }
 
-    const currentCredits = profile?.credits || 0;
-    const profileUpdate: Record<string, unknown> = {
-      stripe_customer_id: customerId,
-    };
+  // Update user profile - award credits even without a Stripe customer ID
+  if (userId) {
+    const profileUpdate: Record<string, unknown> = {};
+
+    // Set Stripe customer ID if we have one
+    if (customerId) {
+      profileUpdate.stripe_customer_id = customerId;
+    }
 
     if (productType === 'subscription') {
       profileUpdate.subscription_status = 'trial';
+      console.log(`[Stripe Webhook] Setting subscription status to trial for user ${userId}`);
     } else if (productType === 'bundle') {
       // Add 10 credits for bundle purchase
       profileUpdate.credits = currentCredits + 10;
-      console.log(`Awarding 10 credits to user ${userId}. New balance: ${profileUpdate.credits}`);
+      console.log(`[Stripe Webhook] Awarding 10 credits to user ${userId}. Prev: ${currentCredits}, New: ${profileUpdate.credits}`);
     } else if (productType === 'single') {
       // Award 1 credit for single purchase
       profileUpdate.credits = currentCredits + 1;
-      console.log(`Awarding 1 credit to user ${userId}. New balance: ${profileUpdate.credits}`);
+      console.log(`[Stripe Webhook] Awarding 1 credit to user ${userId}. Prev: ${currentCredits}, New: ${profileUpdate.credits}`);
     }
 
-    await supabase
-      .from('profiles')
-      .update(profileUpdate)
-      .eq('id', userId);
+    if (Object.keys(profileUpdate).length > 0) {
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update(profileUpdate)
+        .eq('id', userId);
+
+      if (updateError) {
+        console.error('[Stripe Webhook] Error updating profile:', updateError);
+      } else {
+        console.log('[Stripe Webhook] Profile updated successfully:', profileUpdate);
+      }
+    }
   }
 
   // If we have a guest session but no user yet, 
   // the data will be promoted when they click the magic link
   if (guestSessionId && !userId) {
-    console.log('Guest purchase - awaiting auth:', { guestSessionId, animationId });
+    console.log('[Stripe Webhook] Guest purchase - awaiting auth:', { guestSessionId, animationId, customerEmail });
   }
 
-  console.log('Checkout complete:', { animationId, productType, userId });
+  console.log('[Stripe Webhook] Checkout complete:', { animationId, productType, userId, customerEmail });
 }
 
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {

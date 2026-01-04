@@ -29,23 +29,67 @@ interface AccountContentProps {
   } | null;
 }
 
-export function AccountContent({ user, profile, stats }: AccountContentProps) {
+export function AccountContent({ user, profile: initialProfile, stats }: AccountContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [profile, setProfile] = useState(initialProfile);
   
   const isSubscribed = profile?.subscription_status === 'active' || 
                        profile?.subscription_status === 'trial';
 
   useEffect(() => {
-    if (searchParams.get('credits_purchased') === 'true') {
-      setShowSuccess(true);
-      // Auto-hide after 5 seconds
+    const sessionId = searchParams.get('session_id');
+    const creditsPurchased = searchParams.get('credits_purchased');
+    
+    if (sessionId || creditsPurchased === 'true') {
+      // Verify the session and refresh credits
+      const verifyAndRefresh = async () => {
+        // If we have a session ID, verify it with Stripe to ensure credits are awarded
+        if (sessionId) {
+          try {
+            const response = await fetch('/api/checkout/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ sessionId }),
+            });
+            
+            if (response.ok) {
+              const data = await response.json();
+              console.log('Checkout verified:', data);
+            }
+          } catch (err) {
+            console.error('Failed to verify checkout:', err);
+          }
+        }
+        
+        // Refresh profile data to get new credits
+        const supabase = createClient();
+        const { data: newProfile } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (newProfile) {
+          setProfile(newProfile as Profile);
+        }
+        
+        setShowSuccess(true);
+      };
+      
+      verifyAndRefresh();
+      
+      // Auto-hide success message after 5 seconds
       const timer = setTimeout(() => setShowSuccess(false), 5000);
       return () => clearTimeout(timer);
     }
-  }, [searchParams]);
+  }, [searchParams, user.id]);
+
+  useEffect(() => {
+    setProfile(initialProfile);
+  }, [initialProfile]);
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
