@@ -104,12 +104,12 @@ function CelebrationContent() {
       // Check if we got a session (email confirmation might be disabled)
       if (data?.session && data.user) {
         // Logged in immediately - associate the animation with the user
-        const { error: updateError } = await supabase
+        const { error: updateError } = await (supabase as any)
           .from('animations')
           .update({ 
             user_id: data.user.id, 
             guest_session_id: null 
-          } as Database['public']['Tables']['animations']['Update'])
+          })
           .eq('id', animationId);
         
         if (updateError) {
