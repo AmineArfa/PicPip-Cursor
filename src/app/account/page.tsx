@@ -1,6 +1,15 @@
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { AccountContent } from './account-content';
+
+function AccountLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#E8F4FD] to-[#D4E9F7] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-[#ff61d2] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
 
 export const dynamic = 'force-dynamic';
 
@@ -48,6 +57,10 @@ export default async function AccountPage() {
     redirect('/');
   }
   
-  return <AccountContent user={user} profile={profile} stats={stats} />;
+  return (
+    <Suspense fallback={<AccountLoading />}>
+      <AccountContent user={user} profile={profile} stats={stats} />
+    </Suspense>
+  );
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState, useCallback, useEffect } from 'react';
+import { useRef, useState, useCallback, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -13,7 +13,7 @@ import { validateImageFile, generateGuestSessionId } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile } from '@/lib/supabase/types';
 
-export default function HomePage() {
+function HomeContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -352,5 +352,21 @@ export default function HomePage() {
         </svg>
       </div>
     </DotPattern>
+  );
+}
+
+function HomeLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#E8F4FD] to-[#D4E9F7] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-[#ff61d2] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={<HomeLoading />}>
+      <HomeContent />
+    </Suspense>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import Confetti from 'react-confetti';
@@ -11,7 +11,7 @@ import { VideoPlayer } from '@/components/video-player';
 import { PipMascot } from '@/components/pip-mascot';
 import type { Animation } from '@/lib/supabase/types';
 
-export default function CelebrationPage() {
+function CelebrationContent() {
   const router = useRouter();
   const params = useParams();
   const searchParams = useSearchParams();
@@ -234,6 +234,22 @@ export default function CelebrationPage() {
         <p>DESIGNED FOR PICPIP.CO</p>
       </footer>
     </DotPattern>
+  );
+}
+
+function CelebrationLoading() {
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#E8F4FD] to-[#D4E9F7] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-[#ff61d2] border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+}
+
+export default function CelebrationPage() {
+  return (
+    <Suspense fallback={<CelebrationLoading />}>
+      <CelebrationContent />
+    </Suspense>
   );
 }
 
