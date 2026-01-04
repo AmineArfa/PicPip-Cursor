@@ -7,19 +7,11 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { productType, customerEmail, animationId, guestSessionId } = body;
 
-    // Validate required fields
-    // animationId is optional for subscriptions from pricing page
+    // animationId is optional for all products now (to allow buying credits)
+    // but still good to have it if available
     if (!productType || !customerEmail) {
       return NextResponse.json(
         { error: 'Missing required fields' },
-        { status: 400 }
-      );
-    }
-
-    // animationId is required for single and bundle purchases
-    if (productType !== 'subscription' && !animationId) {
-      return NextResponse.json(
-        { error: 'Animation ID is required for this product type' },
         { status: 400 }
       );
     }
@@ -49,12 +41,14 @@ export async function POST(request: NextRequest) {
     let successUrl: string;
     let cancelUrl: string;
 
-    if (productType === 'subscription') {
-      // For subscriptions, redirect to account or home
-      successUrl = `${baseUrl}/account?session_id={CHECKOUT_SESSION_ID}`;
+    const isCreditsOnly = animationId === 'credits-only' || animationId === 'pricing-page';
+
+    if (productType === 'subscription' || isCreditsOnly) {
+      // For subscriptions or credit-only purchases, redirect to account
+      successUrl = `${baseUrl}/account?session_id={CHECKOUT_SESSION_ID}${isCreditsOnly ? '&credits_purchased=true' : ''}`;
       cancelUrl = `${baseUrl}/pricing`;
     } else {
-      // For single/bundle, redirect to celebration page
+      // For single/bundle tied to an animation, redirect to celebration page
       successUrl = `${baseUrl}/celebration/${animationId}?session_id={CHECKOUT_SESSION_ID}`;
       cancelUrl = `${baseUrl}/checkout/${animationId}`;
     }

@@ -13,10 +13,8 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
     : session.customer?.id;
   const customerEmail = session.customer_email;
 
-  if (!animationId) {
-    console.error('No animation ID in checkout session');
-    return;
-  }
+  // animationId is optional for bundle/credits-only purchases
+  const isRealAnimation = animationId && !['pricing-page', 'credits-only', 'bundle-only'].includes(animationId);
 
   const supabase = await createServiceRoleClient();
 
@@ -33,26 +31,28 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
     userId = existingUsers[0].id;
   }
 
-  // Update animation as paid
-  const updateData: Record<string, unknown> = {
-    is_paid: true,
-  };
+  // Update animation as paid if it's a real animation ID
+  if (isRealAnimation) {
+    const updateData: Record<string, unknown> = {
+      is_paid: true,
+    };
 
-  // If we have a user, assign the animation to them
-  if (userId) {
-    updateData.user_id = userId;
-    updateData.guest_session_id = null;
+    // If we have a user, assign the animation to them
+    if (userId) {
+      updateData.user_id = userId;
+      updateData.guest_session_id = null;
+    }
+
+    await supabase
+      .from('animations')
+      .update(updateData)
+      .eq('id', animationId);
   }
-
-  await supabase
-    .from('animations')
-    .update(updateData)
-    .eq('id', animationId);
 
   // Create purchase record
   await supabase.from('purchases').insert({
     user_id: userId,
-    animation_id: animationId,
+    animation_id: isRealAnimation ? animationId : null,
     stripe_session_id: session.id,
     product_type: productType || 'single',
     amount: session.amount_total || 0,
@@ -67,7 +67,7 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
     if (productType === 'subscription') {
       profileUpdate.subscription_status = 'trial';
     } else if (productType === 'bundle') {
-      // Add credits for bundle purchase
+      // Add 10 credits for bundle purchase
       const { data: profile } = await supabase
         .from('profiles')
         .select('credits')
@@ -75,6 +75,15 @@ async function handleCheckoutComplete(session: Stripe.Checkout.Session) {
         .single();
       
       profileUpdate.credits = (profile?.credits || 0) + 10;
+    } else if (productType === 'single' && !isRealAnimation) {
+      // Add 1 credit for single purchase if not tied to an animation
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('credits')
+        .eq('id', userId)
+        .single();
+      
+      profileUpdate.credits = (profile?.credits || 0) + 1;
     }
 
     await supabase

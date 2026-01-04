@@ -78,8 +78,42 @@ export default function HomePage() {
           setIsSubscribed(true);
         }
         setCredits(typedProfile?.credits || 0);
+
+        // Handle purchase parameter if present
+        const url = new URL(window.location.href);
+        const purchase = url.searchParams.get('purchase');
+        if (purchase && (purchase === 'bundle' || purchase === 'single' || purchase === 'subscription')) {
+          try {
+            const response = await fetch('/api/checkout/create-session', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                productType: purchase,
+                customerEmail: session.user.email,
+                animationId: 'credits-only', // Special ID for credit-only purchases
+              }),
+            });
+
+            if (response.ok) {
+              const { url: checkoutUrl } = await response.json();
+              if (checkoutUrl) {
+                window.location.href = checkoutUrl;
+                return;
+              }
+            }
+          } catch (err) {
+            console.error('Failed to create checkout session:', err);
+          }
+        }
       } else {
         setIsAuthenticated(false);
+        
+        // If not authenticated but purchase param is present, redirect to login
+        const url = new URL(window.location.href);
+        const purchase = url.searchParams.get('purchase');
+        if (purchase && (purchase === 'bundle' || purchase === 'single' || purchase === 'subscription')) {
+          router.push(`/login?redirect=/?purchase=${purchase}`);
+        }
       }
       
       setIsLoadingAuth(false);

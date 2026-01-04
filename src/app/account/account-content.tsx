@@ -1,8 +1,8 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
+import { useState, useEffect } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   User, 
   Mail, 
@@ -11,7 +11,8 @@ import {
   Settings,
   ImageIcon,
   Crown,
-  Sparkles
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 import { Header } from '@/components/header';
 import { DotPattern, NeoButton, NeoCard } from '@/components/ui';
@@ -30,10 +31,21 @@ interface AccountContentProps {
 
 export function AccountContent({ user, profile, stats }: AccountContentProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
   
   const isSubscribed = profile?.subscription_status === 'active' || 
                        profile?.subscription_status === 'trial';
+
+  useEffect(() => {
+    if (searchParams.get('credits_purchased') === 'true') {
+      setShowSuccess(true);
+      // Auto-hide after 5 seconds
+      const timer = setTimeout(() => setShowSuccess(false), 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams]);
 
   const handleSignOut = async () => {
     setIsLoggingOut(true);
@@ -54,6 +66,30 @@ export function AccountContent({ user, profile, stats }: AccountContentProps) {
 
       <main className="flex-1 py-8 px-4">
         <div className="max-w-2xl mx-auto space-y-8">
+          {/* Success Message */}
+          <AnimatePresence>
+            {showSuccess && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, marginBottom: 0 }}
+                animate={{ opacity: 1, height: 'auto', marginBottom: 24 }}
+                exit={{ opacity: 0, height: 0, marginBottom: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="bg-[#a3ff00] border-4 border-[#181016] rounded-2xl p-4 flex items-center gap-3 shadow-[4px_4px_0_0_#181016]">
+                  <CheckCircle2 className="w-8 h-8 text-[#181016]" />
+                  <div>
+                    <p className="font-display font-bold text-[#181016] text-lg">
+                      Purchase Successful!
+                    </p>
+                    <p className="text-[#181016]/70 font-bold">
+                      Your credits have been added to your account.
+                    </p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Profile Header */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
