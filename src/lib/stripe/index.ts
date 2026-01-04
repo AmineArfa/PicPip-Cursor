@@ -108,7 +108,7 @@ export async function createCheckoutSession(params: CreateCheckoutParams) {
       metadata: {
         animationId: params.animationId,
         guestSessionId: params.guestSessionId,
-        userId: params.userId,
+        userId: params.userId ?? null,
       },
     };
   }
