@@ -7,6 +7,7 @@ export async function GET(request: NextRequest) {
   const guestSessionId = requestUrl.searchParams.get('guestSessionId');
   const animationId = requestUrl.searchParams.get('animationId');
   const next = requestUrl.searchParams.get('next');
+  const type = requestUrl.searchParams.get('type');
 
   if (code) {
     const supabase = await createServerSupabaseClient();
@@ -29,8 +30,15 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL(`/celebration/${animationId}`, request.url));
     }
     
-    // Redirect to custom next URL or default to memories
-    const redirectTo = next ? decodeURIComponent(next) : '/memories';
+    // Determine where to redirect next
+    let redirectTo = '/memories';
+    
+    if (next) {
+      redirectTo = decodeURIComponent(next);
+    } else if (type === 'recovery') {
+      redirectTo = '/auth/reset-password';
+    }
+    
     return NextResponse.redirect(new URL(redirectTo, request.url));
   }
 

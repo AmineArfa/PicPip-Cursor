@@ -32,6 +32,29 @@ export default function HomePage() {
 
   // Check authentication status and refresh session
   useEffect(() => {
+    // Check if we have a recovery code or other auth params in the URL
+    const checkUrlParams = () => {
+      const url = new URL(window.location.href);
+      
+      // Handle PKCE code
+      const code = url.searchParams.get('code');
+      if (code) {
+        // Redirect to callback handler
+        window.location.href = `/auth/callback?${url.searchParams.toString()}`;
+        return true;
+      }
+
+      // Handle implicit flow recovery (hash fragment)
+      if (window.location.hash && window.location.hash.includes('type=recovery')) {
+        router.push('/auth/reset-password');
+        return true;
+      }
+
+      return false;
+    };
+
+    if (checkUrlParams()) return;
+
     const checkAuth = async () => {
       const supabase = createClient();
       
