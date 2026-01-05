@@ -45,7 +45,7 @@ function ChooseActionContent() {
   const [credits, setCredits] = useState(0);
   const [dailyHighRemaining, setDailyHighRemaining] = useState(5);
 
-  const { currentAnimation, setAnimation, setProcessingStatus } = usePicPipStore();
+  const { currentAnimation, setAnimation, setProcessingStatus, setCredits: setStoreCredits, setUserState } = usePicPipStore();
 
   // Check authentication status
   useEffect(() => {
@@ -62,10 +62,14 @@ function ChooseActionContent() {
           .single();
 
         const typedProfile = profile as Profile | null;
-        if (typedProfile?.subscription_status === 'active' || typedProfile?.subscription_status === 'trial') {
+        const userIsSubscribed = typedProfile?.subscription_status === 'active' || typedProfile?.subscription_status === 'trial';
+        if (userIsSubscribed) {
           setIsSubscribed(true);
         }
-        setCredits(typedProfile?.credits || 0);
+        const userCredits = typedProfile?.credits || 0;
+        setCredits(userCredits);
+        // Also update global store so header reflects current state
+        setUserState(true, userIsSubscribed, userCredits);
         
         // Calculate daily high remaining
         const today = new Date().toISOString().split('T')[0];
@@ -164,6 +168,11 @@ function ChooseActionContent() {
         
         const creditResult = await creditResponse.json();
         console.log(`[Credits] Used ${creditResult.creditsUsed} credit(s) for ${qualityMode} mode`);
+        
+        // Update both local and global state with new credit balance
+        const newCredits = creditResult.credits ?? (credits - creditResult.creditsUsed);
+        setCredits(newCredits);
+        setStoreCredits(newCredits);
       }
 
       // Step 2: Trigger the Runway job with the selected prompt, format, and quality
