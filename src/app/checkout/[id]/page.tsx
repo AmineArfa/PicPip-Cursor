@@ -3,15 +3,19 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useParams, useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Star, Users, Check, Shield, Apple, Sparkles, CreditCard, Zap, LogIn } from 'lucide-react';
+import { Mail, Star, Users, Check, Shield, Apple, Sparkles, CreditCard, Zap, LogIn, Lock, Eye, EyeOff } from 'lucide-react';
 import { Header } from '@/components/header';
-import { DotPattern, NeoButton, NeoCard, NeoInput } from '@/components/ui';
+import { DotPattern, NeoButton, NeoCard } from '@/components/ui';
+import { PipMascot } from '@/components/pip-mascot';
+import { Footer } from '@/components/footer';
 import { usePicPipStore } from '@/lib/store';
 import { createClient } from '@/lib/supabase/client';
 import type { Profile } from '@/lib/supabase/types';
+import Link from 'next/link';
 
 type PlanType = 'trial' | 'single' | 'bundle';
-type CheckoutMode = 'loading' | 'logged_in' | 'guest_email' | 'guest_payment';
+type CheckoutMode = 'loading' | 'logged_in' | 'guest_auth' | 'guest_payment';
+type AuthMode = 'login' | 'signup';
 
 const PLANS = {
   trial: {
@@ -57,14 +61,18 @@ function CheckoutContent() {
   
   const [mode, setMode] = useState<CheckoutMode>('loading');
   const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [authMode, setAuthMode] = useState<AuthMode>('signup');
   const [emailError, setEmailError] = useState<string | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<PlanType>('trial');
   const [isLoading, setIsLoading] = useState(false);
-  const [isCheckingEmail, setIsCheckingEmail] = useState(false);
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
   const [isUsingCredit, setIsUsingCredit] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState<string | null>(null); // Store auth email as fallback
+  const [emailConfirmationSent, setEmailConfirmationSent] = useState(false);
   
   const { guestSessionId, setCredits, setUserState } = usePicPipStore();
 
@@ -95,12 +103,17 @@ function CheckoutContent() {
         }
         setMode('logged_in');
       } else {
-        setMode('guest_email');
+        setMode('guest_auth');
       }
     }
     
-    checkAuth();
-  }, []);
+    // Re-check auth if returning from login
+    if (returnFromLogin) {
+      checkAuth();
+    } else {
+      checkAuth();
+    }
+  }, [returnFromLogin]);
 
   const validateEmail = (email: string): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -146,47 +159,120 @@ function CheckoutContent() {
     }
   };
 
-  const handleEmailSubmit = async () => {
-    if (!email) {
-      setEmailError('Please enter your email address');
-      return;
-    }
+  const handleAuthSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !password.trim()) return;
     
-    if (!validateEmail(email)) {
-      setEmailError('Please enter a valid email address');
-      return;
-    }
-    
+    setIsAuthSubmitting(true);
     setEmailError(null);
-    setIsCheckingEmail(true);
-
+    
     try {
-      // Check if email exists in system
-      const response = await fetch('/api/checkout/check-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: email.toLowerCase() }),
-      });
+      const supabase = createClient();
+      
+      if (authMode === 'login') {
+        // Try to sign in
+        const { data, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
 
-      const data = await response.json();
+        if (signInError) {
+          if (signInError.message.includes('Invalid login credentials')) {
+            setEmailError('Invalid email or password. Need an account? Switch to Sign Up.');
+          } else {
+            setEmailError(signInError.message);
+          }
+          setIsAuthSubmitting(false);
+          return;
+        }
 
-      if (!response.ok) {
-        throw new Error(data.error || 'Failed to check email');
-      }
-
-      if (data.exists) {
-        // Email exists - redirect to login with return URL
-        const returnUrl = encodeURIComponent(`/checkout/${animationId}?from_login=true`);
-        router.push(`/login?redirect=${returnUrl}`);
+        if (data?.session) {
+          // Successfully signed in - refresh page to update state
+          window.location.reload();
+          return;
+        }
       } else {
-        // Email doesn't exist - proceed to payment options
-        setMode('guest_payment');
+        // Sign up new user
+        const { data, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            emailRedirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(`/checkout/${animationId}`)}`,
+          },
+        });
+
+        if (signUpError) {
+          if (signUpError.message.includes('already registered')) {
+            setEmailError('This email is already registered. Try signing in instead.');
+          } else {
+            setEmailError(signUpError.message);
+          }
+          setIsAuthSubmitting(false);
+          return;
+        }
+
+        // Check if email confirmation is required
+        if (data?.user && !data?.session) {
+          // Try to auto-confirm in development mode
+          if (process.env.NODE_ENV === 'development' || window.location.hostname === 'localhost') {
+            try {
+              const response = await fetch('/api/auth/auto-confirm', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId: data.user.id }),
+              });
+
+              if (response.ok) {
+                const { error: signInError } = await supabase.auth.signInWithPassword({
+                  email,
+                  password,
+                });
+
+                if (!signInError) {
+                  window.location.reload();
+                  return;
+                }
+              }
+            } catch (autoConfirmError) {
+              console.error('Auto-confirm error:', autoConfirmError);
+            }
+          }
+
+          // Email confirmation required
+          setEmailConfirmationSent(true);
+          setIsAuthSubmitting(false);
+          return;
+        }
+
+        if (data?.session) {
+          // Successfully signed up and logged in
+          window.location.reload();
+          return;
+        }
       }
-    } catch (error: any) {
-      console.error('Email check error:', error);
-      setEmailError(error.message || 'Something went wrong. Please try again.');
-    } finally {
-      setIsCheckingEmail(false);
+    } catch (err: any) {
+      console.error('Auth error:', err);
+      setEmailError(err.message || 'Authentication failed. Please try again.');
+      setIsAuthSubmitting(false);
+    }
+  };
+
+  const handleOAuthLogin = async (provider: 'google' | 'apple' | 'facebook') => {
+    setEmailError(null);
+    try {
+      const supabase = createClient();
+      const returnUrl = `/checkout/${animationId}`;
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(returnUrl)}`,
+        },
+      });
+      
+      if (error) throw error;
+    } catch (err: any) {
+      console.error('OAuth error:', err);
+      setEmailError(err.message || `Failed to sign in with ${provider}. Please try again.`);
     }
   };
 
@@ -393,47 +479,269 @@ function CheckoutContent() {
               </motion.div>
             )}
 
-            {/* GUEST: Email Input */}
-            {mode === 'guest_email' && (
+            {/* GUEST: Sign In / Sign Up */}
+            {mode === 'guest_auth' && (
               <motion.div
-                key="guest-email"
+                key="guest-auth"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
-                className="max-w-3xl mx-auto space-y-6"
+                className="max-w-md mx-auto space-y-6"
               >
-                <NeoInput
-                  type="email"
-                  size="xl"
-                  placeholder="Enter your email here..."
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleEmailSubmit()}
-                  error={emailError || undefined}
-                  label="Where should we send your video?"
-                  icon={<Mail className="w-8 h-8" />}
-                />
-
-                <NeoButton
-                  variant="primary"
-                  size="lg"
-                  icon={isCheckingEmail ? undefined : <Sparkles className="w-6 h-6" />}
-                  onClick={handleEmailSubmit}
-                  disabled={isCheckingEmail || !email}
-                  className="w-full"
-                >
-                  {isCheckingEmail ? 'Checking...' : 'Continue'}
-                </NeoButton>
-
-                <div className="text-center">
-                  <button
-                    onClick={() => router.push(`/login?redirect=${encodeURIComponent(`/checkout/${animationId}?from_login=true`)}`)}
-                    className="text-[#2962ff] font-bold hover:underline inline-flex items-center gap-2"
+                {emailConfirmationSent ? (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="bg-white border-4 border-[#181016] rounded-3xl shadow-[6px_6px_0_0_#181016] p-8 text-center"
                   >
-                    <LogIn className="w-4 h-4" />
-                    Already have an account? Sign in
-                  </button>
-                </div>
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: 'spring', stiffness: 200, delay: 0.2 }}
+                      className="w-20 h-20 mx-auto mb-6 rounded-full bg-[#a3ff00] border-4 border-[#181016] flex items-center justify-center"
+                    >
+                      <Mail className="w-10 h-10 text-[#181016]" />
+                    </motion.div>
+                    
+                    <h2 className="font-display text-3xl font-bold text-[#181016] mb-3">
+                      Check your email!
+                    </h2>
+                    
+                    <p className="text-lg text-[#181016]/70 mb-2">
+                      We sent a confirmation link to
+                    </p>
+                    <p className="text-xl font-bold text-[#181016] mb-6">
+                      {email}
+                    </p>
+                    
+                    <div className="bg-[#FFF9E6] border-2 border-[#181016]/20 rounded-2xl p-4 mb-6">
+                      <p className="text-[#181016]/70 text-sm">
+                        💡 <strong>Tip:</strong> Click the link in the email to confirm your account, then come back to sign in!
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setEmailConfirmationSent(false);
+                        setEmail('');
+                        setPassword('');
+                        setAuthMode('login');
+                      }}
+                      className="text-[#2962ff] font-bold hover:underline"
+                    >
+                      Back to sign in
+                    </button>
+                  </motion.div>
+                ) : (
+                  <>
+                    {/* Auth Mode Toggle */}
+                    <motion.div
+                      className="w-full"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.15 }}
+                    >
+                      <div className="bg-white/50 border-3 border-[#181016] rounded-full p-1 flex">
+                        <button
+                          type="button"
+                          onClick={() => setAuthMode('login')}
+                          className={`flex-1 py-3 px-6 rounded-full font-display font-bold text-lg transition-all ${
+                            authMode === 'login'
+                              ? 'bg-[#ff61d2] text-white shadow-[2px_2px_0_0_#181016]'
+                              : 'text-[#181016]/60 hover:text-[#181016]'
+                          }`}
+                        >
+                          Sign In
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setAuthMode('signup')}
+                          className={`flex-1 py-3 px-6 rounded-full font-display font-bold text-lg transition-all ${
+                            authMode === 'signup'
+                              ? 'bg-[#ff61d2] text-white shadow-[2px_2px_0_0_#181016]'
+                              : 'text-[#181016]/60 hover:text-[#181016]'
+                          }`}
+                        >
+                          Sign Up
+                        </button>
+                      </div>
+                    </motion.div>
+
+                    {/* OAuth Buttons */}
+                    <motion.div
+                      className="w-full space-y-3"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => handleOAuthLogin('google')}
+                        className="w-full h-14 bg-white border-3 border-[#181016] rounded-2xl shadow-[4px_4px_0_0_#181016] hover:shadow-[2px_2px_0_0_#181016] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-3 font-display font-bold text-lg"
+                      >
+                        <svg viewBox="0 0 24 24" className="w-6 h-6">
+                          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                        </svg>
+                        Continue with Google
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => handleOAuthLogin('apple')}
+                        className="w-full h-14 bg-[#181016] text-white border-3 border-[#181016] rounded-2xl shadow-[4px_4px_0_0_#181016] hover:shadow-[2px_2px_0_0_#181016] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-3 font-display font-bold text-lg"
+                      >
+                        <svg viewBox="0 0 24 24" className="w-6 h-6 fill-current">
+                          <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
+                        </svg>
+                        Continue with Apple
+                      </button>
+                      
+                      <button
+                        type="button"
+                        onClick={() => handleOAuthLogin('facebook')}
+                        className="w-full h-14 bg-[#1877F2] text-white border-3 border-[#181016] rounded-2xl shadow-[4px_4px_0_0_#181016] hover:shadow-[2px_2px_0_0_#181016] hover:translate-x-[2px] hover:translate-y-[2px] transition-all flex items-center justify-center gap-3 font-display font-bold text-lg"
+                      >
+                        <svg viewBox="0 0 24 24" className="w-6 h-6">
+                          <path fill="white" d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                        </svg>
+                        Continue with Facebook
+                      </button>
+                    </motion.div>
+
+                    {/* Divider */}
+                    <motion.div
+                      className="w-full flex items-center gap-4"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.3 }}
+                    >
+                      <div className="flex-1 h-1 bg-[#181016]/10 rounded-full" />
+                      <span className="text-[#181016]/50 font-bold">or</span>
+                      <div className="flex-1 h-1 bg-[#181016]/10 rounded-full" />
+                    </motion.div>
+
+                    {/* Email/Password Form */}
+                    <motion.div
+                      className="w-full space-y-4"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.35 }}
+                    >
+                      <form onSubmit={handleAuthSubmit}>
+                        <div className="bg-white border-4 border-[#181016] rounded-3xl shadow-[6px_6px_0_0_#181016] p-6 space-y-4">
+                          {/* Email Input */}
+                          <label className="block">
+                            <span className="font-display text-lg font-bold text-[#181016] block mb-2">
+                              Email
+                            </span>
+                            <div className="relative">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#181016]/40">
+                                <Mail className="w-5 h-5" />
+                              </div>
+                              <input
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="you@email.com"
+                                className="w-full h-14 pl-12 pr-4 rounded-xl border-3 border-[#181016] text-lg font-medium focus:outline-none focus:border-[#ff61d2] placeholder:text-[#181016]/30 transition-colors"
+                                required
+                                disabled={isAuthSubmitting}
+                              />
+                            </div>
+                          </label>
+
+                          {/* Password Input */}
+                          <label className="block">
+                            <span className="font-display text-lg font-bold text-[#181016] block mb-2">
+                              Password
+                            </span>
+                            <div className="relative">
+                              <div className="absolute left-4 top-1/2 -translate-y-1/2 text-[#181016]/40">
+                                <Lock className="w-5 h-5" />
+                              </div>
+                              <input
+                                type={showPassword ? 'text' : 'password'}
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="w-full h-14 pl-12 pr-12 rounded-xl border-3 border-[#181016] text-lg font-medium focus:outline-none focus:border-[#ff61d2] placeholder:text-[#181016]/30 transition-colors"
+                                required
+                                disabled={isAuthSubmitting}
+                                minLength={6}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-4 top-1/2 -translate-y-1/2 text-[#181016]/40 hover:text-[#181016] transition-colors"
+                              >
+                                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                              </button>
+                            </div>
+                          </label>
+
+                          {/* Forgot Password Link */}
+                          {authMode === 'login' && (
+                            <div className="text-right">
+                              <Link
+                                href="/login/forgot-password"
+                                className="text-[#2962ff] font-bold text-sm hover:underline"
+                              >
+                                Forgot password?
+                              </Link>
+                            </div>
+                          )}
+
+                          {/* Error Message */}
+                          {emailError && (
+                            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3">
+                              <p className="text-red-600 text-sm font-medium">{emailError}</p>
+                            </div>
+                          )}
+                        </div>
+
+                        <div className="mt-4">
+                          <button
+                            type="submit"
+                            disabled={!email.trim() || !password.trim() || isAuthSubmitting}
+                            className="relative group w-full cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                          >
+                            {/* Shadow Layer */}
+                            <div className="absolute inset-0 rounded-full bg-[#181016] translate-x-[5px] translate-y-[5px]" />
+                            
+                            {/* Button Content */}
+                            <div className="relative flex items-center justify-center gap-3 w-full rounded-full border-4 border-[#181016] transition-colors bg-[#ff61d2] text-white hover:bg-[#ff7dd9] h-16 px-8 text-xl font-extrabold">
+                              <span className="flex-shrink-0">
+                                <Sparkles className="w-6 h-6" />
+                              </span>
+                              <span className="font-display uppercase tracking-wide">
+                                {isAuthSubmitting 
+                                  ? (authMode === 'login' ? 'Signing in...' : 'Creating account...') 
+                                  : (authMode === 'login' ? 'Sign In' : 'Create Account')
+                                }
+                              </span>
+                            </div>
+                          </button>
+                        </div>
+
+                        {authMode === 'signup' && (
+                          <p className="text-center text-[#181016]/60 text-sm mt-4">
+                            By signing up, you agree to our{' '}
+                            <Link href="/terms" className="text-[#2962ff] font-bold hover:underline">
+                              Terms of Service
+                            </Link>
+                            {' '}and{' '}
+                            <Link href="/privacy" className="text-[#2962ff] font-bold hover:underline">
+                              Privacy Policy
+                            </Link>.
+                          </p>
+                        )}
+                      </form>
+                    </motion.div>
+                  </>
+                )}
               </motion.div>
             )}
 
@@ -457,7 +765,7 @@ function CheckoutContent() {
                       </div>
                     </div>
                     <button
-                      onClick={() => setMode('guest_email')}
+                      onClick={() => setMode('guest_auth')}
                       className="text-[#2962ff] font-bold hover:underline"
                     >
                       Change
@@ -539,9 +847,13 @@ function CheckoutContent() {
       </main>
 
       {/* Footer */}
-      <footer className="w-full py-6 text-center text-[#181016]/50 font-bold text-sm">
-        <p>© 2024 PicPip.co. All memories preserved.</p>
-      </footer>
+      {mode === 'guest_auth' ? (
+        <Footer variant="minimal" />
+      ) : (
+        <footer className="w-full py-6 text-center text-[#181016]/50 font-bold text-sm">
+          <p>© {new Date().getFullYear()} PicPip.co. All memories preserved.</p>
+        </footer>
+      )}
     </DotPattern>
   );
 }

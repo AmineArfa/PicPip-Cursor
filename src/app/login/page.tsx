@@ -44,7 +44,7 @@ function LoginContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [authMode, setAuthMode] = useState<AuthMode>('login');
+  const [authMode, setAuthMode] = useState<AuthMode>('signup');
   const [emailConfirmationSent, setEmailConfirmationSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {

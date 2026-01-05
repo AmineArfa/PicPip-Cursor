@@ -120,6 +120,11 @@ function ChooseActionContent() {
   const getCreditCost = () => CREDIT_COSTS[qualityMode];
 
   const canAfford = () => {
+    // When logged off, allow launching (will ask for credits after)
+    if (!isAuthenticated) {
+      return true;
+    }
+    // When logged on, check credits/subscription
     if (isSubscribed) {
       if (qualityMode === 'high') {
         return dailyHighRemaining > 0;
@@ -133,7 +138,8 @@ function ChooseActionContent() {
     const promptText = getSelectedPrompt();
     if (!promptText) return;
 
-    if (!canAfford()) {
+    // Only check credits if user is authenticated
+    if (isAuthenticated && !canAfford()) {
       router.push('/pricing');
       return;
     }
@@ -477,17 +483,17 @@ function ChooseActionContent() {
                     variant="primary"
                     size="lg"
                     onClick={handleContinue}
-                    disabled={!isReadyToContinue || isSubmitting || !canAfford()}
+                    disabled={!isReadyToContinue || isSubmitting || (isAuthenticated && !canAfford())}
                     icon={<ArrowRight className="w-6 h-6" />}
                     iconPosition="right"
-                    pulse={isReadyToContinue && !isSubmitting && canAfford()}
+                    pulse={isReadyToContinue && !isSubmitting && (isAuthenticated ? canAfford() : true)}
                   >
-                    {isSubmitting ? 'Starting Magic...' : !canAfford() ? 'Need More Credits' : 'Make It Move!'}
+                    {isSubmitting ? 'Starting Magic...' : (isAuthenticated && !canAfford()) ? 'Need More Credits' : 'Make It Move!'}
                   </NeoButton>
 
                   {/* Credit/subscription info */}
                   <div className="text-center mt-4">
-                    {!canAfford() ? (
+                    {isAuthenticated && !canAfford() ? (
                       <p className="text-red-500 font-medium">
                         {isSubscribed && qualityMode === 'high'
                           ? "You've used all 5 extended videos today"

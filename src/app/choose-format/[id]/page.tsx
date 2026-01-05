@@ -160,7 +160,7 @@ export default function ChooseFormatPage() {
                   {/* Format label */}
                   <div className="mt-4 text-center">
                     <p className="text-sm font-bold text-[#181016]/70">
-                      {VIDEO_FORMATS[selectedFormat].aspectRatio} • {VIDEO_FORMATS[selectedFormat].name}
+                      Video format: {VIDEO_FORMATS[selectedFormat].aspectRatio} • {VIDEO_FORMATS[selectedFormat].name}
                     </p>
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export default function ChooseFormatPage() {
                         <span className="text-2xl">{format.icon}</span>
                         <div className="flex-1">
                           <span className="font-bold text-sm block">{format.name}</span>
-                          <span className="text-xs text-[#181016]/60">{format.aspectRatio}</span>
+                          <span className="text-xs text-[#181016]/60">Video format: {format.aspectRatio}</span>
                         </div>
                       </div>
                       <p className="text-xs text-[#181016]/70 mt-2">{format.description}</p>
