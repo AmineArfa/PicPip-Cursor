@@ -1,5 +1,13 @@
 // Video format presets for different social media platforms
 // Used to configure Runway API calls with the correct aspect ratio and resolution
+//
+// IMPORTANT: Runway Gen4 API only supports these specific ratios:
+// - 1280:720 (16:9 landscape)
+// - 720:1280 (9:16 portrait)
+// - 1104:832 (~4:3 landscape)
+// - 832:1104 (~3:4 portrait)
+// - 960:960 (1:1 square)
+// - 1584:672 (ultra-wide)
 
 import type { VideoFormat } from '@/lib/supabase/types';
 
@@ -9,7 +17,7 @@ export interface FormatPreset {
   description: string;
   icon: string;  // Emoji icon for UI
   aspectRatio: string;  // Display format (e.g., "9:16")
-  resolution: string;  // Runway API format (e.g., "1080:1920")
+  resolution: string;  // Runway API format - MUST be one of the supported values above
   width: number;
   height: number;
   duration: 5 | 10;
@@ -23,9 +31,9 @@ export const VIDEO_FORMATS: Record<VideoFormat, FormatPreset> = {
     description: 'Perfect for TikTok, Instagram Reels, and YouTube Shorts',
     icon: '📱',
     aspectRatio: '9:16',
-    resolution: '1080:1920',
-    width: 1080,
-    height: 1920,
+    resolution: '720:1280',  // Runway Gen4 supported ratio
+    width: 720,
+    height: 1280,
     duration: 10,
     platforms: ['TikTok', 'Instagram Reels', 'YouTube Shorts'],
   },
@@ -35,9 +43,9 @@ export const VIDEO_FORMATS: Record<VideoFormat, FormatPreset> = {
     description: 'Optimized for Instagram Reels and Stories',
     icon: '🎬',
     aspectRatio: '9:16',
-    resolution: '1080:1920',
-    width: 1080,
-    height: 1920,
+    resolution: '720:1280',  // Runway Gen4 supported ratio
+    width: 720,
+    height: 1280,
     duration: 10,
     platforms: ['Instagram Reels', 'Instagram Stories'],
   },
@@ -47,21 +55,21 @@ export const VIDEO_FORMATS: Record<VideoFormat, FormatPreset> = {
     description: 'Classic square format for Instagram feed posts',
     icon: '📷',
     aspectRatio: '1:1',
-    resolution: '1080:1080',
-    width: 1080,
-    height: 1080,
+    resolution: '960:960',  // Runway Gen4 supported ratio
+    width: 960,
+    height: 960,
     duration: 10,
     platforms: ['Instagram Feed', 'Facebook'],
   },
   instagram_portrait: {
     id: 'instagram_portrait',
     name: 'Instagram Portrait',
-    description: 'Portrait format for Instagram feed (4:5 ratio)',
+    description: 'Portrait format for Instagram feed (3:4 ratio)',
     icon: '🖼️',
-    aspectRatio: '4:5',
-    resolution: '1080:1350',
-    width: 1080,
-    height: 1350,
+    aspectRatio: '3:4',
+    resolution: '832:1104',  // Runway Gen4 supported ratio (closest to 4:5)
+    width: 832,
+    height: 1104,
     duration: 10,
     platforms: ['Instagram Feed'],
   },
@@ -71,9 +79,9 @@ export const VIDEO_FORMATS: Record<VideoFormat, FormatPreset> = {
     description: 'Standard widescreen for YouTube and presentations',
     icon: '🖥️',
     aspectRatio: '16:9',
-    resolution: '1920:1080',
-    width: 1920,
-    height: 1080,
+    resolution: '1280:720',  // Runway Gen4 supported ratio
+    width: 1280,
+    height: 720,
     duration: 10,
     platforms: ['YouTube', 'Website', 'Presentations'],
   },
