@@ -7,7 +7,8 @@ import { AlertTriangle, Star, Zap, Crown, CheckCircle2, Loader2, Sparkles, Camer
 import { Header } from '@/components/header';
 import { usePicPipStore } from '@/lib/store';
 import { createClient } from '@/lib/supabase/client';
-import type { Profile } from '@/lib/supabase/types';
+import { VIDEO_FORMATS } from '@/lib/runway/formats';
+import type { Profile, VideoFormat } from '@/lib/supabase/types';
 import Image from 'next/image';
 
 // Processing steps with icons
@@ -44,6 +45,26 @@ export default function ProcessingPage() {
   const { currentAnimation, setAnimation, setProcessingStatus } = usePicPipStore();
   const [devModeStart] = useState(() => Date.now());
   const [isDevMode, setIsDevMode] = useState(false);
+
+  // Get aspect ratio class based on animation format
+  const getAspectRatioClass = (): string => {
+    const format = currentAnimation?.format as VideoFormat | undefined;
+    if (!format || !VIDEO_FORMATS[format]) {
+      return 'aspect-[9/16]'; // Default to portrait for processing
+    }
+    
+    // Map format aspect ratios to Tailwind classes
+    const aspectRatioMap: Record<string, string> = {
+      '9:16': 'aspect-[9/16]',  // TikTok, Reels (portrait)
+      '16:9': 'aspect-video',    // Landscape
+      '1:1': 'aspect-square',    // Square
+      '3:4': 'aspect-[3/4]',     // Portrait
+      '4:3': 'aspect-[4/3]',     // Landscape (4:3)
+    };
+    
+    const formatAspectRatio = VIDEO_FORMATS[format].aspectRatio;
+    return aspectRatioMap[formatAspectRatio] || 'aspect-[9/16]';
+  };
 
   // Check authentication status and get animation details
   useEffect(() => {
@@ -243,8 +264,8 @@ export default function ProcessingPage() {
             animate={{ opacity: 1, scale: 1 }}
           >
             <div className="flex flex-col md:flex-row gap-6 items-center">
-              {/* Image Preview */}
-              <div className="relative w-full md:w-1/2 aspect-[9/16] max-h-[300px] bg-gray-100 rounded-2xl overflow-hidden border-4 border-[#181016]">
+              {/* Image Preview - respects selected format */}
+              <div className={`relative w-full md:w-1/2 max-h-[300px] bg-gray-100 rounded-2xl overflow-hidden border-4 border-[#181016] ${getAspectRatioClass()}`}>
                 {currentAnimation?.original_photo_url ? (
                   <Image
                     src={currentAnimation.original_photo_url}

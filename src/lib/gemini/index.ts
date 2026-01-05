@@ -154,18 +154,26 @@ async function analyzeWithGemini(
 
 /**
  * Get enhanced prompt for video generation
- * Uses Gemini if configured, otherwise falls back to static enhanced prompts
+ * ALWAYS uses Gemini if configured (for both preset and custom prompts)
+ * Falls back to static enhanced prompts only when Gemini is not available
  */
 export async function getEnhancedPrompt(
   imageUrl: string,
   userAction: string
 ): Promise<EnhancedPromptResult> {
-  // Try Gemini first if configured
+  // Check if this is a known preset action or a custom prompt
+  const isPresetAction = !!ENHANCED_PROMPTS[userAction];
+  
+  // ALWAYS try Gemini first if configured - for both preset and custom prompts
+  // Gemini analyzes the actual image and creates a tailored prompt
   if (isGeminiConfigured()) {
+    console.log(`[Gemini] Enhancing ${isPresetAction ? 'preset' : 'CUSTOM'} prompt: "${userAction.slice(0, 50)}..."`);
+    
     try {
       const analysis = await analyzeWithGemini(imageUrl, userAction);
       
       if (analysis?.suggestedPrompt) {
+        console.log(`[Gemini] Successfully enhanced prompt for Runway`);
         return {
           prompt: analysis.suggestedPrompt,
           analysis,
@@ -175,21 +183,26 @@ export async function getEnhancedPrompt(
     } catch (error) {
       console.error('[Gemini] Failed, falling back to static prompts:', error);
     }
+  } else {
+    console.log('[Gemini] Not configured, using static enhancement');
   }
 
-  // Fallback to enhanced static prompts
+  // Fallback to enhanced static prompts (only for known preset actions)
   const enhancedPrompt = ENHANCED_PROMPTS[userAction];
   
   if (enhancedPrompt) {
+    console.log('[Gemini] Using static enhanced prompt for preset action');
     return {
       prompt: enhancedPrompt,
       usedGemini: false,
     };
   }
 
-  // Default enhancement for custom prompts
+  // Fallback for custom prompts when Gemini is not available
+  // Add professional camera/motion language to improve Runway output
+  console.log('[Gemini] Using basic enhancement for custom prompt (Gemini not available)');
   return {
-    prompt: `${userAction}. The camera holds steady, capturing smooth and natural movement with subtle motion.`,
+    prompt: `${userAction}. The subject performs this action with natural, fluid movement. The camera holds steady with subtle tracking, capturing the motion smoothly.`,
     usedGemini: false,
   };
 }

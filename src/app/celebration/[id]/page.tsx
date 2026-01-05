@@ -11,7 +11,8 @@ import { DotPattern, NeoButton } from '@/components/ui';
 import { VideoPlayer } from '@/components/video-player';
 import { PipMascot } from '@/components/pip-mascot';
 import { createClient } from '@/lib/supabase/client';
-import type { Animation, Profile } from '@/lib/supabase/types';
+import { VIDEO_FORMATS } from '@/lib/runway/formats';
+import type { Animation, Profile, VideoFormat } from '@/lib/supabase/types';
 
 function CelebrationContent() {
   const router = useRouter();
@@ -170,6 +171,26 @@ function CelebrationContent() {
 
   // Check if user has access to unwatermarked video
   const hasUnwatermarkedAccess = !!animation?.video_url;
+
+  // Get aspect ratio class based on animation format
+  const getAspectRatioClass = (): string => {
+    const format = animation?.format as VideoFormat | undefined;
+    if (!format || !VIDEO_FORMATS[format]) {
+      return 'aspect-video'; // Default to 16:9
+    }
+    
+    // Map format aspect ratios to Tailwind classes
+    const aspectRatioMap: Record<string, string> = {
+      '9:16': 'aspect-[9/16]',  // TikTok, Reels (portrait)
+      '16:9': 'aspect-video',    // Landscape
+      '1:1': 'aspect-square',    // Square
+      '3:4': 'aspect-[3/4]',     // Portrait
+      '4:3': 'aspect-[4/3]',     // Landscape (4:3)
+    };
+    
+    const formatAspectRatio = VIDEO_FORMATS[format].aspectRatio;
+    return aspectRatioMap[formatAspectRatio] || 'aspect-video';
+  };
 
   const handleDownload = async () => {
     if (!hasUnwatermarkedAccess) {
@@ -478,9 +499,16 @@ function CelebrationContent() {
           </div>
         </motion.div>
 
-        {/* Video Player */}
+        {/* Video Player - sized based on format */}
         <motion.div
-          className="w-full max-w-lg mb-8"
+          className={`mb-8 ${
+            // Use different max-width based on aspect ratio
+            getAspectRatioClass() === 'aspect-[9/16]' 
+              ? 'w-full max-w-xs sm:max-w-sm' // Portrait videos (TikTok)
+              : getAspectRatioClass() === 'aspect-square'
+              ? 'w-full max-w-md' // Square videos
+              : 'w-full max-w-lg sm:max-w-xl' // Landscape videos
+          }`}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.2 }}
@@ -489,6 +517,7 @@ function CelebrationContent() {
             src={animation?.video_url || animation?.watermarked_video_url || '/demo-video.mp4'}
             poster={animation?.original_photo_url || undefined}
             showWatermark={!animation?.video_url}
+            aspectRatio={getAspectRatioClass()}
             autoPlay
             loop
           />

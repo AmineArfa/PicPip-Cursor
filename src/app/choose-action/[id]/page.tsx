@@ -138,7 +138,35 @@ function ChooseActionContent() {
     setProcessingStatus('processing', 'Starting the magic...');
 
     try {
-      // Trigger the Runway job with the selected prompt, format, and quality
+      // Step 1: Deduct credits first (if user has credits/subscription)
+      if (isAuthenticated) {
+        const creditResponse = await fetch('/api/checkout/use-credit', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            animationId,
+            qualityMode,
+          }),
+        });
+
+        if (!creditResponse.ok) {
+          const creditError = await creditResponse.json();
+          console.error('Credit deduction failed:', creditError);
+          setProcessingStatus('error', creditError.error || 'Failed to use credit');
+          setIsSubmitting(false);
+          
+          // If not enough credits, redirect to pricing
+          if (creditResponse.status === 402) {
+            router.push('/pricing');
+          }
+          return;
+        }
+        
+        const creditResult = await creditResponse.json();
+        console.log(`[Credits] Used ${creditResult.creditsUsed} credit(s) for ${qualityMode} mode`);
+      }
+
+      // Step 2: Trigger the Runway job with the selected prompt, format, and quality
       const response = await fetch('/api/runway/create-job', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

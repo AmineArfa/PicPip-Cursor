@@ -15,6 +15,8 @@ interface VideoPlayerProps {
   onDownload?: () => void;
   className?: string;
   hideControls?: boolean;
+  /** Aspect ratio class for the video container (e.g., 'aspect-[9/16]', 'aspect-video') */
+  aspectRatio?: string;
 }
 
 export function VideoPlayer({
@@ -27,6 +29,7 @@ export function VideoPlayer({
   onDownload,
   className,
   hideControls = false,
+  aspectRatio = 'aspect-video',
 }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(autoPlay);
@@ -89,8 +92,8 @@ export function VideoPlayer({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5 }}
     >
-      {/* Video Container */}
-      <div className="relative aspect-[4/5] sm:aspect-video bg-black">
+      {/* Video Container - aspect ratio controlled by prop */}
+      <div className={cn('relative bg-black', aspectRatio)}>
         <video
           ref={videoRef}
           src={src}
