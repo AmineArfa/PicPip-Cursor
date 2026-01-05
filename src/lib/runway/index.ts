@@ -2,7 +2,7 @@
 // Documentation: https://docs.runwayml.com/
 
 import type { VideoFormat, QualityMode } from '@/lib/supabase/types';
-import { getFormatPreset, getRunwayRatio } from './formats';
+import { getRunwayRatio } from './formats';
 
 // Runway model types
 export type RunwayModel = 'gen3a_turbo' | 'gen4_turbo' | 'gen4';
@@ -31,20 +31,25 @@ export interface RunwayJobResponse {
 }
 
 // Quality mode configuration
+// NOTE: Only gen4_turbo is available via the developer API
+// gen4 (higher quality model) is only available on the web platform, not API
+// High quality mode = longer video duration (10s vs 5s)
 export const QUALITY_CONFIG = {
   fast: {
     model: 'gen4_turbo' as RunwayModel,
+    duration: 5 as const,  // 5 second video
     credits: 1,
-    estimatedTime: 30,  // seconds
-    label: 'Fast',
-    description: 'Quick generation (~30s)',
+    estimatedTime: 30,  // seconds to generate
+    label: 'Standard',
+    description: '5 second video',
   },
   high: {
-    model: 'gen4' as RunwayModel,
+    model: 'gen4_turbo' as RunwayModel,
+    duration: 10 as const,  // 10 second video (double length)
     credits: 2,
-    estimatedTime: 120,  // seconds
-    label: 'High Quality',
-    description: 'Premium quality (~2min)',
+    estimatedTime: 60,  // seconds to generate
+    label: 'Extended',
+    description: '10 second video',
   },
 } as const;
 
@@ -58,136 +63,109 @@ export function getCreditCost(qualityMode: QualityMode): number {
   return QUALITY_CONFIG[qualityMode].credits;
 }
 
+// Get duration for quality mode (fast=5s, high=10s)
+export function getDurationForQuality(qualityMode: QualityMode): 5 | 10 {
+  return QUALITY_CONFIG[qualityMode].duration;
+}
+
 // Runway API URL - use api.dev.runwayml.com (not api.runwayml.com)
 const RUNWAY_API_URL = 'https://api.dev.runwayml.com/v1';
 
-// Demo video for simulation mode
-const DEMO_VIDEOS = [
-  'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-  'https://storage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-];
-
 class RunwayClient {
   private apiKey: string;
-  private simulationMode: boolean = false;
 
   constructor(apiKey: string) {
     this.apiKey = apiKey;
   }
 
   async createImageToVideoJob(request: RunwayJobRequest): Promise<RunwayJobResponse> {
-    try {
-      // Determine model based on quality mode
-      const qualityMode = request.qualityMode || 'fast';
-      const model = request.model || getModelForQuality(qualityMode);
-      
-      // Get ratio from format or use provided ratio
-      let ratio = request.ratio;
-      if (!ratio && request.format) {
-        ratio = getRunwayRatio(request.format);
-      }
-      // Default to landscape if nothing specified
-      if (!ratio) {
-        ratio = '1920:1080';
-      }
-
-      // Duration defaults to 10 seconds
-      const duration = request.duration || 10;
-
-      // Build request body - Based on Runway API docs (v2024-11-06)
-      const requestBody: Record<string, unknown> = {
-        model,
-        promptImage: request.promptImage,
-        ratio,
-        duration,
-      };
-
-      // Add promptText if provided (optional but recommended)
-      if (request.promptText) {
-        requestBody.promptText = request.promptText;
-      }
-
-      // Optional parameters
-      if (request.seed !== undefined) {
-        requestBody.seed = request.seed;
-      }
-      // Note: watermark is not supported for gen4/gen4_turbo
-      
-      console.log('[Runway] Creating job with:', JSON.stringify({
-        ...requestBody,
-        qualityMode,
-        format: request.format,
-      }));
-      
-      const response = await fetch(`${RUNWAY_API_URL}/image_to_video`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-          'X-Runway-Version': '2024-11-06',
-        },
-        body: JSON.stringify(requestBody),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        console.error('Runway API error response:', {
-          status: response.status,
-          statusText: response.statusText,
-          error: errorData,
-          issues: JSON.stringify(errorData.issues, null, 2)
-        });
-        
-        // If API fails, fall back to simulation
-        if (response.status === 400 || response.status === 401 || response.status === 403) {
-          console.log('[Runway] Falling back to simulation mode');
-          this.simulationMode = true;
-          return this.createSimulatedJob(request, qualityMode);
-        }
-        
-        throw new Error(`Runway API error: ${errorData.message || errorData.error || response.statusText}`);
-      }
-
-      return response.json();
-    } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-      console.error('Runway API call failed:', errorMessage);
-      // Fall back to simulation on any error
-      console.log('[Runway] Falling back to simulation mode due to error');
-      this.simulationMode = true;
-      return this.createSimulatedJob(request, request.qualityMode || 'fast');
+    // Determine model and duration based on quality mode
+    const qualityMode = request.qualityMode || 'fast';
+    const model = request.model || getModelForQuality(qualityMode);
+    const duration = request.duration || getDurationForQuality(qualityMode);
+    
+    // Get ratio from format or use provided ratio
+    let ratio = request.ratio;
+    if (!ratio && request.format) {
+      ratio = getRunwayRatio(request.format);
     }
-  }
+    // Default to landscape if nothing specified (must use supported ratio!)
+    if (!ratio) {
+      ratio = '1280:720';
+    }
 
-  private createSimulatedJob(request: RunwayJobRequest, qualityMode: QualityMode): RunwayJobResponse {
-    const jobId = `sim_${Date.now()}_${Math.random().toString(36).substring(7)}`;
-    const estimatedTime = QUALITY_CONFIG[qualityMode].estimatedTime;
-    console.log(`[Runway Simulation] Created job ${jobId} (${qualityMode} mode)`);
-    return {
-      id: jobId,
-      status: 'PENDING',
-      createdAt: new Date().toISOString(),
-      estimatedTimeToComplete: estimatedTime,
+    // Build request body - Based on Runway API docs (v2024-11-06)
+    const requestBody: Record<string, unknown> = {
+      model,
+      promptImage: request.promptImage,
+      ratio,
+      duration,
     };
-  }
 
-  isSimulationMode(): boolean {
-    return this.simulationMode;
+    // Add promptText if provided (optional but recommended)
+    if (request.promptText) {
+      requestBody.promptText = request.promptText;
+    }
+
+    // Optional parameters
+    if (request.seed !== undefined) {
+      requestBody.seed = request.seed;
+    }
+    // Note: watermark is not supported for gen4/gen4_turbo
+    
+    console.log('[Runway] Creating job with:', JSON.stringify({
+      ...requestBody,
+      qualityMode,
+      format: request.format,
+    }));
+    
+    const response = await fetch(`${RUNWAY_API_URL}/image_to_video`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${this.apiKey}`,
+        'Content-Type': 'application/json',
+        'X-Runway-Version': '2024-11-06',
+      },
+      body: JSON.stringify(requestBody),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      console.error('[Runway] API error response:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData,
+        issues: JSON.stringify(errorData.issues, null, 2),
+        requestBody,
+      });
+      
+      // Build detailed error message
+      let errorMessage = `Runway API error (${response.status}): `;
+      if (errorData.error) {
+        errorMessage += errorData.error;
+      } else if (errorData.message) {
+        errorMessage += errorData.message;
+      } else {
+        errorMessage += response.statusText;
+      }
+      
+      // Include validation issues if present
+      if (errorData.issues && Array.isArray(errorData.issues)) {
+        const issueDetails = errorData.issues.map((i: { path?: string[]; message?: string }) => 
+          `${i.path?.join('.') || 'unknown'}: ${i.message || 'validation error'}`
+        ).join('; ');
+        errorMessage += ` - ${issueDetails}`;
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    const jobData = await response.json();
+    console.log('[Runway] Job created successfully:', jobData.id);
+    return jobData;
   }
 
   async getJobStatus(taskId: string): Promise<RunwayJobResponse> {
-    // Handle simulated jobs
-    if (taskId.startsWith('sim_') || this.simulationMode) {
-      console.log(`[Runway Simulation] Returning completed status for ${taskId}`);
-      const demoVideo = DEMO_VIDEOS[Math.floor(Math.random() * DEMO_VIDEOS.length)];
-      return {
-        id: taskId,
-        status: 'SUCCEEDED',
-        createdAt: new Date().toISOString(),
-        output: [demoVideo],
-      };
-    }
-
     const response = await fetch(`${RUNWAY_API_URL}/tasks/${taskId}`, {
       method: 'GET',
       headers: {

@@ -1,8 +1,8 @@
-// Runway ML Simulation for Development
-// Used when RUNWAY_API_KEY is not set
+// Runway ML Client Factory
+// Uses real API when RUNWAY_API_KEY is set, otherwise warns user
 
 import type { RunwayJobRequest, RunwayJobResponse } from './index';
-import { QUALITY_CONFIG } from './index';
+import { QUALITY_CONFIG, RunwayClient } from './index';
 import type { QualityMode } from '@/lib/supabase/types';
 
 const DEMO_VIDEOS = [
@@ -20,6 +20,10 @@ const simulatedJobs = new Map<string, {
   qualityMode: QualityMode;
 }>();
 
+/**
+ * SimulatedRunwayClient - for development/testing only
+ * Used when RUNWAY_API_KEY is not configured
+ */
 export class SimulatedRunwayClient {
   async createImageToVideoJob(request: RunwayJobRequest): Promise<RunwayJobResponse> {
     const jobId = `sim_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
@@ -39,6 +43,7 @@ export class SimulatedRunwayClient {
       qualityMode,
     });
 
+    console.warn(`[Runway Simulation] ⚠️ Using SIMULATED client - set RUNWAY_API_KEY for real videos!`);
     console.log(`[Runway Simulation] Created ${qualityMode} job ${jobId} - will complete in ${Math.round(processingTime / 1000)}s`);
     console.log(`[Runway Simulation] Format: ${request.format || 'default'}, Ratio: ${request.ratio || 'auto'}`);
 
@@ -54,6 +59,16 @@ export class SimulatedRunwayClient {
     const job = simulatedJobs.get(taskId);
     
     if (!job) {
+      // If we don't have the job stored but it's a sim_ job, return completed
+      if (taskId.startsWith('sim_')) {
+        console.log(`[Runway Simulation] Job ${taskId} not in memory, returning completed`);
+        return {
+          id: taskId,
+          status: 'SUCCEEDED',
+          createdAt: new Date().toISOString(),
+          output: [DEMO_VIDEOS[Math.floor(Math.random() * DEMO_VIDEOS.length)]],
+        };
+      }
       throw new Error(`Job ${taskId} not found`);
     }
 
@@ -87,22 +102,21 @@ export class SimulatedRunwayClient {
       console.log(`[Runway Simulation] Cancelled job ${taskId}`);
     }
   }
-
-  isSimulationMode(): boolean {
-    return true;
-  }
 }
 
-// Get appropriate client based on environment
-export function getRunwayClientWithFallback() {
+/**
+ * Get appropriate Runway client based on environment
+ * Returns real client if RUNWAY_API_KEY is set, otherwise simulation
+ */
+export function getRunwayClientWithFallback(): RunwayClient | SimulatedRunwayClient {
   const apiKey = process.env.RUNWAY_API_KEY;
   
   if (!apiKey) {
-    console.warn('[Runway] No API key found - using simulation mode');
+    console.warn('[Runway] ⚠️ RUNWAY_API_KEY not set - using simulation mode!');
+    console.warn('[Runway] Videos will be demo placeholders, not real AI generations');
     return new SimulatedRunwayClient();
   }
   
-  // Use real client - dynamic import to avoid circular dependency
-  const { RunwayClient } = require('./index');
+  console.log('[Runway] Using real API client');
   return new RunwayClient(apiKey);
 }

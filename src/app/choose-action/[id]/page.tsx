@@ -354,14 +354,14 @@ function ChooseActionContent() {
                   </AnimatePresence>
                 </div>
 
-                {/* Quality Mode Toggle */}
+                {/* Video Duration Toggle */}
                 <div className="mb-6">
                   <h3 className="text-sm font-bold text-[#181016] mb-3 flex items-center gap-2">
                     <Zap className="w-4 h-4" />
-                    Video Quality
+                    Video Duration
                   </h3>
                   <div className="grid grid-cols-2 gap-3">
-                    {/* Fast Mode */}
+                    {/* Standard 5s Mode */}
                     <motion.button
                       onClick={() => setQualityMode('fast')}
                       className={`
@@ -377,7 +377,7 @@ function ChooseActionContent() {
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <Zap className="w-5 h-5 text-[#00d4ff]" />
-                          <span className="font-bold">Fast</span>
+                          <span className="font-bold">5 Seconds</span>
                         </div>
                         {qualityMode === 'fast' && (
                           <div className="w-5 h-5 bg-[#00d4ff] rounded-full flex items-center justify-center">
@@ -385,7 +385,7 @@ function ChooseActionContent() {
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-[#181016]/60 text-left">~30 seconds</p>
+                      <p className="text-xs text-[#181016]/60 text-left">Quick preview • ~30s wait</p>
                       <div className="mt-2 text-left">
                         {isSubscribed ? (
                           <span className="text-xs font-bold text-[#00d4ff]">Unlimited</span>
@@ -395,7 +395,7 @@ function ChooseActionContent() {
                       </div>
                     </motion.button>
 
-                    {/* High Quality Mode */}
+                    {/* Extended 10s Mode */}
                     <motion.button
                       onClick={() => setQualityMode('high')}
                       className={`
@@ -409,12 +409,12 @@ function ChooseActionContent() {
                       whileTap={{ scale: 0.98 }}
                     >
                       <div className="absolute -top-2 -right-2 bg-[#ff61d2] text-white text-xs font-bold px-2 py-0.5 rounded-full border-2 border-[#181016]">
-                        PRO
+                        2X
                       </div>
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
                           <Crown className="w-5 h-5 text-[#ff61d2]" />
-                          <span className="font-bold">High Quality</span>
+                          <span className="font-bold">10 Seconds</span>
                         </div>
                         {qualityMode === 'high' && (
                           <div className="w-5 h-5 bg-[#ff61d2] rounded-full flex items-center justify-center">
@@ -422,7 +422,7 @@ function ChooseActionContent() {
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-[#181016]/60 text-left">~2 minutes • Better details</p>
+                      <p className="text-xs text-[#181016]/60 text-left">Full length • ~60s wait</p>
                       <div className="mt-2 text-left">
                         {isSubscribed ? (
                           <span className="text-xs font-bold text-[#ff61d2]">{dailyHighRemaining}/5 today</span>
@@ -453,7 +453,7 @@ function ChooseActionContent() {
                     {!canAfford() ? (
                       <p className="text-red-500 font-medium">
                         {isSubscribed && qualityMode === 'high'
-                          ? "You've used all 5 High Quality videos today"
+                          ? "You've used all 5 extended videos today"
                           : `Not enough credits (need ${getCreditCost()})`
                         }
                       </p>
@@ -470,9 +470,9 @@ function ChooseActionContent() {
                         }
                         {' • '}
                         {qualityMode === 'high' ? (
-                          <span className="text-[#ff61d2]">High Quality</span>
+                          <span className="text-[#ff61d2]">10s video</span>
                         ) : (
-                          <span className="text-[#00d4ff]">Fast</span>
+                          <span className="text-[#00d4ff]">5s video</span>
                         )}
                       </motion.p>
                     ) : null}
